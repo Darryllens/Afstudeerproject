@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Summary of Actions</h1>
+        <div id="summary-content" class="mt-4">
+            <!-- Summary content will be dynamically inserted here based on the card UID -->
+        </div>
+        <a href="/" class="btn btn-primary mt-3">Terug naar Home</a>
+    </div>
+
+    <script>
+        // Fetch summary data based on the unique card UID
+        async function fetchSummary() {
+            const response = await fetch('/get_summary'); // Endpoint to get summary data
+            const data = await response.json();
+            const summaryContent = document.getElementById('summary-content');
+
+            if (data.success) {
+                summaryContent.innerHTML = `
+                    <h2>Drankjes voor UID: ${data.card_uid}</h2>
+                    <ul class="list-group">
+                        ${data.drinks.map(drink => `
+                            <li class="list-group-item">
+                                ${drink.drink_name} - €${drink.drink_price} (Toegevoegd op: ${drink.added_on})
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } else {
+                summaryContent.innerHTML = `<p>${data.error}</p>`;
+            }
+        }
+
+        // Call the function to fetch summary data when the page loads
+        window.onload = fetchSummary;
+    </script>
+</body>
+</html>

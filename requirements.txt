@@ -1,0 +1,7 @@
+Flask==2.0.3
+Flask-Cors==3.10.9
+mysql-connector-python==8.0.27
+adafruit-circuitpython-pn532==1.0.1
+board==0.7.0
+busio==1.5.0
+digitalio==6.2.0

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+            color: #333;
+        }
+
+        .welcome-container {
+            text-align: center;
+            padding: 40px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #0800ff;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.2rem;
+        }
+
+        .start-button {
+            background-color: #0800ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .start-button:hover {
+            background-color: #0056b3;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        .logo img {
+            max-width: 100px;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status-message.info {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            display: block;
+        }
+
+        .status-message.success {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            display: block;
+        }
+
+        .status-message.error {
+            background-color: #ffebee;
+            color: #b71c1c;
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            .welcome-container {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <div class="logo">
+            <img src="https://www.foot24.be/logos/hoevenen.png" alt="Hoevenen Logo">
+        </div>
+        <h1>Welcome</h1>
+        <p>Scan your NFC card to proceed.</p>
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+    <script>
+        function checkCardScan() {
+            // Vraag de server of een kaart is gescand
+            $.ajax({
+                url: '/check_scan',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = response.redirect;
+                    } else if (response.redirect === 'registration') {
+                        window.location.href = '/registration.html';
+                    } else {
+                        setTimeout(checkCardScan, 2000); // Probeer opnieuw na 2 seconden
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Er is een fout opgetreden:', xhr.responseText);
+                    setTimeout(checkCardScan, 2000); // Probeer opnieuw na 2 seconden
+                }
+            });
+        }
+
+        // Start de checkCardScan functie zodra de pagina is geladen
+        $(document).ready(function() {
+            checkCardScan();
+        });
+    </script>
+</body>
+</html>
