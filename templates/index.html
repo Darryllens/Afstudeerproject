@@ -1,638 +1,673 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drinks for {{ card_uid }}</title>
+    <title>User Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f9f9f9;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
             color: #333;
         }
 
-        h1 {
-            font-size: 2.5rem;
-            color: #3700ff;
+        .header {
+            background-color: #0800ff;
+            color: white;
+            padding: 20px 0;
             text-align: center;
-            margin-top: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .category-title {
+        .header h1 {
+            margin: 0;
             font-size: 1.8rem;
-            color: #333;
-            text-align: center;
-            margin: 30px 0 10px;
         }
 
-        .button-container {
+        .user-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .user-info img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .main-container {
+            flex: 1;
+            padding: 20px;
             max-width: 1200px;
             margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0800ff;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table th,
+        table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        table th {
+            background-color: #f8f9fa;
+            font-weight: 500;
         }
 
         .button {
-            width: 220px;
-            height: 260px;
-            border-radius: 15px;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            position: relative;
+            background-color: #0800ff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
         }
 
         .button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+            background-color: #0056b3;
         }
 
-        .button img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
+        .drink-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        .button .content {
+        .drink-item {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             padding: 10px;
-            text-align: center;
-        }
-
-        .button .content .name {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .button .content .price {
-            font-size: 1rem;
-            color: #1e00ff;
-            margin-top: 5px;
-        }
-
-        .action-button {
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            border: none;
-            border-radius: 8px;
+            width: calc(33.333% - 10px);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
             cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .bill-button {
-            background-color: #4caf4e;
-            color: white;
+        .drink-item:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        .bill-button:hover {
-            background-color: #45a049;
+        .drink-item.adding {
+            background-color: #d4edda;
         }
 
-        .next-button {
-            background-color: #1500ff;
-            color: white;
+        .drink-name {
+            font-weight: 500;
+            margin-bottom: 5px;
         }
 
-        .next-button:hover {
-            background-color: #2b00ff;
+        .drink-price {
+            color: #0800ff;
+            font-weight: 600;
         }
 
-        #message {
-            text-align: center;
-            margin: 20px 0;
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .success-message,
+        .error-message {
             padding: 10px;
             border-radius: 5px;
+            margin-top: 10px;
+            display: none;
         }
 
-        .message-success {
-            background-color: #4caf4e33;
-            color: #4caf4e;
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
         }
 
-        .message-error {
-            background-color: #ff000033;
-            color: #ff0000;
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
         }
 
-        .record {
-            background-color: #fefefe;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        #drankjes {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-
-        .total-price {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f0f0f0;
-            border-radius: 8px;
+        .category-title {
             font-size: 1.2rem;
-            font-weight: bold;
-            text-align: right;
+            color: #333;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            width: 100%;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s, fadeOut 0.5s 2.5s forwards;
+            max-width: 300px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0800ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         @media (max-width: 768px) {
-            .button {
-                width: 180px;
-                height: 220px;
+            .drink-item {
+                width: calc(50% - 10px);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .drink-item {
+                width: 100%;
             }
 
-            .button img {
-                height: 120px;
+            .main-container {
+                padding: 10px;
             }
 
-            .button .content .name {
-                font-size: 1rem;
-            }
-
-            .button .content .price {
-                font-size: 0.9rem;
-            }
-
-            .category-title {
+            .header h1 {
                 font-size: 1.5rem;
             }
         }
     </style>
-    <script>
-        let currentCardUid = '{{ card_uid }}';
-        
-        // Functie om een drankje toe te voegen
-        async function addDrink(drinkName, price) {
-            try {
-                const response = await fetch('/add_drink.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        drink: drinkName, 
-                        price: price,
-                        card_uid: currentCardUid
-                    }),
-                });
-
-                const result = await response.json();
-                const message = document.getElementById('message');
-                
-                if (result.success) {
-                    message.textContent = `${drinkName} is toegevoegd voor €${price.toFixed(2)}!`;
-                    message.className = 'message-success';
-                    // Ververs de rekening automatisch
-                    await fetchDatabaseContents();
-                } else {
-                    throw new Error(result.error || 'Er is een fout opgetreden');
-                }
-            } catch (error) {
-                const message = document.getElementById('message');
-                message.textContent = `Fout: ${error.message}`;
-                message.className = 'message-error';
-            }
-        }
-
-        // Functie om de inhoud van de database op te halen
-        async function fetchDatabaseContents() {
-            try {
-                const response = await fetch('/add_drink.php', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                const result = await response.json();
-                const container = document.getElementById('drankjes');
-                
-                if (result.success) {
-                    let html = '<h2>Huidige Bestelling:</h2>';
-                    
-                    if (result.data.length === 0) {
-                        html += '<p>Er zijn nog geen drankjes besteld.</p>';
-                    } else {
-                        let totalPrice = 0;
-                        result.data.forEach(item => {
-                            totalPrice += parseFloat(item.prijs);
-                            html += `
-                                <div class="record">
-                                    <p><strong>${item.naam}</strong></p>
-                                    <p>€${parseFloat(item.prijs).toFixed(2)}</p>
-                                </div>
-                            `;
-                        });
-
-                        html += `
-                            <div class="total-price">
-                                Totaal: €${totalPrice.toFixed(2)}
-                            </div>
-                        `;
-                    }
-                    
-                    container.innerHTML = html;
-                } else {
-                    throw new Error(result.error || 'Fout bij ophalen van de bestellingen');
-                }
-            } catch (error) {
-                const container = document.getElementById('drankjes');
-                container.innerHTML = `<p class="message-error">Fout: ${error.message}</p>`;
-            }
-        }
-
-        // Functie om naar het overzicht te gaan
-        function goToSummary() {
-            window.location.href = 'summary.html';
-        }
-
-        // Laad de bestellingen wanneer de pagina wordt geopend
-        document.addEventListener('DOMContentLoaded', fetchDatabaseContents);
-    </script>
 </head>
+
 <body>
-    <h1>Bestelling voor kaart: {{ card_uid }}</h1>
-    <h1>Kies je drankje of snack</h1>
+    <div class="header">
+        <h1>Welcome to Patro Hoevenen</h1>
+    </div>
 
-    <div class="category-title">Frisdrank</div>
-    <div class="button-container">
-        <!-- Frisdrank knoppen -->
-        <div class="button" onclick="addDrink('Water', 2.40)">
-            <img src="/api/placeholder/400/320" alt="Water">
-            <div class="content">
-                <div class="name">Water</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Sinaasappelsap', 2.40)">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQRTuqlKtKLpLK-OZS1TVXM_E_fnsO19bVulw&s"
-                alt="Sinaasappelsap">
-            <div class="content">
-                <div class="name">Sinaasappelsap</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Pepsi', 2.40)">
-            <img src="https://static.wixstatic.com/media/a2b823_184280e7e3ab4c4f885261185520699a~mv2.png/v1/fit/w_500,h_500,q_90/file.png"
-                alt="Pepsi">
+    <div class="user-info">
+        <img src="https://www.foot24.be/logos/hoevenen.png" alt="Logo" onerror="this.style.display='none'">
+        <span id="userName">{{ user_name }}</span>
+    </div>
 
-            <div class="content">
-                <div class="name">Pepsi</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Pepsi Max', 2.40)">
-            <img src="https://prod.isg.bruneau.media/asset/aHR0cHM6Ly9jb3JwLmJydW5lYXUubWVkaWEvcGFydG5lcnMvQWR2ZW8vQkUvMTQ0MTRfUC5qcGc=/?height=477&quality=85&width=477"
-                alt="Pepsi Max">
-            <div class="content">
-                <div class="name">Pepsi Max</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Fanta', 2.40)">
-            <img src="https://www.coca-cola.com/content/dam/onexp/be/nl/brands/fanta/REN2308-00183_BIC_FO_CANSLK_330ml_BEL%20_%20LUX_FR_D_Closed_5000112638783_724.png"
-                alt="Fanta">
-            <div class="content">
-                <div class="name">Fanta</div>
-                <div class="price">€2,40</div>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="main-container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Your Drinks</h2>
+                <div>Card ID: <span id="cardUID">{{ card_uid }}</span></div>
             </div>
 
-        </div>
-        <div class="button" onclick="addDrink('Schweppes Agrumes', 2.40)">
-            <img src="https://puertos.be/delivery/wp-content/uploads/2023/11/schweppes-agrumes.jpg"
-                alt="Schweppes Agrumes">
-            <div class="content">
-                <div class="name">Schweppes Agrumes</div>
-                <div class="price">€2,40</div>
+            <div id="userDrinksContainer">
+                {% if user_drinks %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Drink</th>
+                            <th>Price</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="drinksTableBody">
+                        {% for drink in user_drinks %}
+                        <tr>
+                            <td>{{ drink.drink_name }}</td>
+                            <td>€{{ drink.drink_price }}</td>
+                            <td>{{ drink.added_on }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="total-section">
+                    <span>Total</span>
+                    <span id="totalAmount">€{{ total_spent }}</span>
+                </div>
+                {% else %}
+                <p id="noDrinksMessage">You haven't ordered any drinks yet.</p>
+                <table style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Drink</th>
+                            <th>Price</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="drinksTableBody">
+                    </tbody>
+                </table>
+                <div class="total-section" style="display: none;">
+                    <span>Total</span>
+                    <span id="totalAmount">€0.00</span>
+                </div>
+                {% endif %}
             </div>
         </div>
-        <div class="button" onclick="addDrink('tonic', 2.40)">
-            <img src="https://www.prikentik.be/media/catalog/product/cache/23d9da881b836928ceaa9fe24f71827f/5/4/54021655_b1n1_en.png"
-                alt="tonic">
-            <div class="content">
-                <div class="name">tonic</div>
-                <div class="price">€2.40</div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Available Drinks</h2>
+                <button id="refreshDrinks" class="button">Refresh</button>
             </div>
-        </div>
-        <div class="button" onclick="addDrink('Looza', 2.40)">
-            <img src="https://www.looza.be/prod/s3fs-public/2023-03/loo_orange_20cl-lg-2_1.png" alt="looza">
-            <div class="content">
-                <div class="name">Looza</div>
-                <div class="price">€2.40</div>
+
+            <div id="drinkList" class="drink-list">
+                <!-- Category: Frisdrank -->
+                <div class="category-title">Frisdrank</div>
+                <div class="drink-item" data-name="Water" data-price="2.40">
+                    <div class="drink-name">Water</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Sinaasappelsap" data-price="2.40">
+                    <div class="drink-name">Sinaasappelsap</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Pepsi" data-price="2.40">
+                    <div class="drink-name">Pepsi</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Pepsi Max" data-price="2.40">
+                    <div class="drink-name">Pepsi Max</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Fanta" data-price="2.40">
+                    <div class="drink-name">Fanta</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Schweppes Agrumes" data-price="2.40">
+                    <div class="drink-name">Schweppes Agrumes</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Tonic" data-price="2.40">
+                    <div class="drink-name">Tonic</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Looza" data-price="2.40">
+                    <div class="drink-name">Looza</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Appelsap" data-price="2.40">
+                    <div class="drink-name">Appelsap</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Fristi" data-price="2.40">
+                    <div class="drink-name">Fristi</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Cecemel" data-price="2.40">
+                    <div class="drink-name">Cecemel</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Ice Tea" data-price="2.40">
+                    <div class="drink-name">Ice Tea</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Ice Tea Green" data-price="2.40">
+                    <div class="drink-name">Ice Tea Green</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Powerade" data-price="2.40">
+                    <div class="drink-name">Powerade</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+
+                <!-- Category: Warme Dranken -->
+                <div class="category-title">Warme Dranken</div>
+                <div class="drink-item" data-name="Koffie" data-price="2.40">
+                    <div class="drink-name">Koffie</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Thee" data-price="2.40">
+                    <div class="drink-name">Thee</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Warme Chocomelk" data-price="2.40">
+                    <div class="drink-name">Warme Chocomelk</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+
+                <!-- Category: Bieren -->
+                <div class="category-title">Bieren</div>
+                <div class="drink-item" data-name="Bier" data-price="2.40">
+                    <div class="drink-name">Bier</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Koninck" data-price="2.40">
+                    <div class="drink-name">Koninck</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="NA Star" data-price="2.40">
+                    <div class="drink-name">NA Star</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="0.0 Flandrien 33cl" data-price="3.50">
+                    <div class="drink-name">0.0 Flandrien 33cl</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="0.0 Rouge 33cl" data-price="3.50">
+                    <div class="drink-name">0.0 Rouge 33cl</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Export 33cl" data-price="3.00">
+                    <div class="drink-name">Export 33cl</div>
+                    <div class="drink-price">€3,00</div>
+                </div>
+                <div class="drink-item" data-name="Blanche 33cl" data-price="3.00">
+                    <div class="drink-name">Blanche 33cl</div>
+                    <div class="drink-price">€3,00</div>
+                </div>
+                <div class="drink-item" data-name="Kriek" data-price="3.00">
+                    <div class="drink-name">Kriek</div>
+                    <div class="drink-price">€3,00</div>
+                </div>
+                <div class="drink-item" data-name="Prior 33cl" data-price="3.50">
+                    <div class="drink-name">Prior 33cl</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Ommegang 33cl" data-price="3.50">
+                    <div class="drink-name">Ommegang 33cl</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Ippa 33cl" data-price="3.50">
+                    <div class="drink-name">Ippa 33cl</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Flandrien 33cl" data-price="3.50">
+                    <div class="drink-name">Flandrien 33cl</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Tongerlo Blond" data-price="3.00">
+                    <div class="drink-name">Tongerlo Blond</div>
+                    <div class="drink-price">€3,00</div>
+                </div>
+                <div class="drink-item" data-name="Tongerlo Bruin" data-price="3.00">
+                    <div class="drink-name">Tongerlo Bruin</div>
+                    <div class="drink-price">€3,00</div>
+                </div>
+                <div class="drink-item" data-name="Duvel" data-price="3.00">
+                    <div class="drink-name">Duvel</div>
+                    <div class="drink-price">€3,00</div>
+                </div>
+
+                <!-- Category: Wijn -->
+                <div class="category-title">Wijn</div>
+                <div class="drink-item" data-name="Rode Wijn" data-price="3.50">
+                    <div class="drink-name">Rode Wijn</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Witte Wijn" data-price="3.50">
+                    <div class="drink-name">Witte Wijn</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Rosé Wijn" data-price="3.50">
+                    <div class="drink-name">Rosé Wijn</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Cava Glas" data-price="3.50">
+                    <div class="drink-name">Cava Glas</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Cava Fles" data-price="19.00">
+                    <div class="drink-name">Cava Fles</div>
+                    <div class="drink-price">€19,00</div>
+                </div>
+
+                <!-- Category: Snacks -->
+                <div class="category-title">Snacks</div>
+                <div class="drink-item" data-name="Croque Monsieur" data-price="3.00">
+                    <div class="drink-name">Croque Monsieur</div>
+                    <div class="drink-price">€3,00</div>
+                </div>
+                <div class="drink-item" data-name="Warme Hapjes" data-price="3.50">
+                    <div class="drink-name">Warme Hapjes</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Aiki Noodles" data-price="3.50">
+                    <div class="drink-name">Aiki Noodles</div>
+                    <div class="drink-price">€3,50</div>
+                </div>
+                <div class="drink-item" data-name="Soep" data-price="2.40">
+                    <div class="drink-name">Soep</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Hotdog" data-price="2.40">
+                    <div class="drink-name">Hotdog (alleen zaterdag)</div>
+                    <div class="drink-price">€2,40</div>
+                </div>
+                <div class="drink-item" data-name="Chips" data-price="1.90">
+                    <div class="drink-name">Chips</div>
+                    <div class="drink-price">€1,90</div>
+                </div>
+                <div class="drink-item" data-name="Snoep" data-price="1.90">
+                    <div class="drink-name">Snoep</div>
+                    <div class="drink-price">€1,90</div>
+                </div>
             </div>
-        </div>
-        <div class="button" onclick="addDrink('appelsap', 2.40)">
-            <img src="https://ketomaaltijd.nl/wp-content/uploads/2024/01/AH-Appelsap-bevat-10g-koolhydraten.jpeg"
-                alt="appelsap">
-            <div class="content">
-                <div class="name">appelsap</div>
-                <div class="price">€2.40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Fristi', 2.40)">
-            <img src="https://media.s-bol.com/7kpY2wDO21ZB/gA2OM9/310x840.jpg" alt="Fristi">
-            <div class="content">
-                <div class="name">Fristi</div>
-                <div class="price">€2.40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('cecemel', 2.40)">
-            <img src="https://www.prikentik.be/media/catalog/product/c/e/cecemel-tetra-brik-1l.jpg" alt="cecemel">
-            <div class="content">
-                <div class="name">cecemel</div>
-                <div class="price">€2.40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Ice Tea', 2.40)">
-            <img src="https://prod.isg.bruneau.media/asset/aHR0cHM6Ly9icnVuZWF1LnNpbXBsZXdvcmtzcGFjZS5uZXQvZmlsZS9wdWJBc3NldEJhc2UvS2doNV9jaFdyX3RsWEtiZ095ZkZNU2VXdlZqR1pWbXBfamtLWC1OMC1KVUNwVnZDYUZJLzAvcy85MTI4Mi5qcGc=/?quality=85"
-                alt>
-            <div class="content">
-                <div class="name">Ice Tea</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Ice Tea Green', 2.40)">
-            <img src="https://www.mesbonbons.net/_next/image?url=https%3A%2F%2Ffladis.blob.core.windows.net%2Ferp%2F382445e1-95ec-4f1a-a623-0dec1ec6f192.png&w=1080&q=75"
-                alt="Ice Tea Green">
-            <div class="content">
-                <div class="name">Ice Tea Green</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Powerade', 2.40)">
-            <img src="https://ip.prod.freshop.retail.ncrcloud.com/resize?url=https://images.freshop.ncrcloud.com/1564405684702542002/ea74583fd19eed7fc08eda35a25bdef7_large.png&width=512&type=webp&quality=90"
-                alt="Powerade">
-            <div class="content">
-                <div class="name">Powerade</div>
-                <div class="price">€2,40</div>
+
+            <div class="buttons">
+                <button id="backToWelcome" class="button">Back to Welcome</button>
             </div>
         </div>
     </div>
 
-    <div class="category-title">Warme Dranken</div>
-    <div class="button-container">
-        <!-- Warme dranken knoppen -->
-        <div class="button" onclick="addDrink('Koffie', 2.40)">
-            <img src="/api/placeholder/400/320" alt="Koffie">
-            <div class="content">
-                <div class="name">Koffie</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Thee', 2.40)">
+    <script>
+        const userName = "{{ user_name }}";
+        const cardUID = "{{ card_uid }}";
+        let totalSpent = {{ total_spent|default (0) }};
 
-            <img src="https://www.123inkt.be/image/Pickwick_English_thee_100_stuks_421001_421001_m3_big.jpg" alt="Thee">
-            <div class="content">
-                <div class="name">Thee</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Warme Chocomelk', 2.40)">
-            <img src="https://running.be/wp-content/uploads/2021/12/2_09025807_warmechocomelkgezond.png"
-                alt="Warme Chocomelk">
-            <div class="content">
-                <div class="name">Warme Chocomelk</div>
-                <div class="price">€2,40</div>
+        $(document).ready(function () {
+            // Direct add on drink item click
+            $('.drink-item').click(function () {
+                const $this = $(this);
+                const drinkName = $this.data('name');
+                const drinkPrice = $this.data('price');
 
-            </div>
-        </div>
-    </div>
-    <div class="category-title">Bieren</div>
-    <div class="button-container">
-        <div class="button" onclick="addDrink('Bier', 2.40)">
-            <img src="https://images.alken-maes.com/wp-content/uploads/2014/12/Cristal-Glas-no-shadow-Front-3475-09-PRINT-FLATT-NEW_LR.jpg"
-                alt="Bier">
-            <div class="content">
-                <div class="name">Bier</div>
-                <div class="price">€2,40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Koninck', 2.40)">
-            <img src="https://vlaamschereus.nl/wp-content/uploads/2019/02/De-Koninck-480x742.jpg" alt="Koninck">
-            <div class="content">
-                <div class="name">Koninck</div>
-                <div class="price">€2.40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('NA Star', 2.40)">
-            <img src="https://images.ctfassets.net/vlb1ben6vtp9/640TzghijCYCakwEkOCaSi/d7fd00c2ef61d8b2fb647387dd2bb3e2/Star_Light_glas_fles_800x1530.png"
-                alt="NA Star">
-            <div class="content">
-                <div class="name">NA Star</div>
-                <div class="price">€2.40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('0.0 Flandrien 33cl', 3.50)">
-            <img src="https://static.wixstatic.com/media/b020e8_9e849563828a4a7d837c2c81c508c6a5~mv2.jpg/v1/fit/w_500,h_500,q_90/file.jpg"
-                alt="0.0 Flandrien 33cl">
-            <div class="content">
-                <div class="name">0.0 Flandrien</div>
-                <div class="price">€3.50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('0.0 Rouge 33cl', 3.50)">
-            <img src="https://www.prikentik.be/media/catalog/product/s/u/super_8_rouge_fles_33cl.png"
-                alt="0.0 Rouge 33cl">
-            <div class="content">
-                <div class="name">Rouge 33cl</div>
-                <div class="price">€3.50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Export 33cl', 3.00)">
-            <img src="https://www.belgianbrewed.com/Media/Super%208%20Export%2033cl.JPG" alt="Export 33cl">
-            <div class="content">
-                <div class="name">Export 33cl</div>
-                <div class="price">€3.00</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Blanche 33cl', 3.00)">
-            <img src="https://www.belgianbrewed.com/Media/Super%208%20Blanche%2033cl.JPG" alt="Blanche 33cl">
-            <div class="content">
-                <div class="name">Blanche 33cl</div>
-                <div class="price">3.00</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('kriek', 3.00)">
-            <img src="https://images.ctfassets.net/vlb1ben6vtp9/3toEmuxc8E6Ssu8eA0KMKs/18eb4d9f42cacf7222b9ae3b0bd04484/Mystic_Krieken_800x1530.png"
-                alt="kriek">
-            <div class="content">
-                <div class="name">kriek</div>
-                <div class="price">€3.00</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('prior 33cl', 3.50)">
-            <img src="https://www.bierpassie.com/beericon/750/medium/1484906971.jpg" alt="prior 33cl">
-            <div class="content">
-                <div class="name">prior 33cl</div>
-                <div class="price">€3.50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Ommegang 33cl', 3.50)">
-            <img src="https://www.bierenwijnhuis.be/1762-large_default/ommegang-keizer-karel-33cl.jpg"
-                alt="Ommegang 33cl">
-            <div class="content">
-                <div class="name">Ommegang 33cl</div>
-                <div class="price">€3.50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Ippa 33cl', 3.50)">
-            <img src="https://www.belgianbrewed.com/Media/Super%208%20IPA%2033cl.JPG" alt="Ippa 33cl">
-            <div class="content">
-                <div class="name">Ippa 33cl</div>
-                <div class="price">€3.50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Flandrien 33cl', 3.50)">
-            <img src="https://static.hanos.nl/medias/914Wx914H-null?context=bWFzdGVyfHByb2R1Y3RpbWFnZXN8MTQyNjE3fGltYWdlL2pwZWd8YURVMUwyaGxNeTh4TURjM016TXpPRGMxTVRBd05pODVNVFJYZURreE5FaGZiblZzYkF8MWI4YWQxOGFiMzQ2YTY3OGFiMjU5ZTJkOWUxNzA0NDU3MmNiOTYzYjMzMjViYWVhZTg1NTM4NWI5NDA3ZThmOQ"
-                alt="Flandrien 33cl">
-            <div class="content">
-                <div class="name">Flandrien 33cl</div>
-                <div class="price">€3.50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Tongerlo Blond', 3.00)">
-            <img src="https://8aa7dc6c85.clvaw-cdnwnd.com/cc24dcfd095472c9cea1af001d7fc62c/200000570-52dc152dc4/tongerlo_bierglas.png?ph=8aa7dc6c85"
-                alt="Tongerlo Blond">
-            <div class="content">
-                <div class="name">Tongerlo Blond</div>
-                <div class="price">€3,00</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Tongerlo Bruin', 3.00)">
-            <img src="https://asterx.be/sites/default/files/assortiment/tongerlo-nox.jpg" alt="Tongerlo Bruin">
-            <div class="content">
-                <div class="name">Tongerlo Bruin</div>
-                <div class="price">€3,00</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Duvel', 3.00)">
-            <img src="https://www.trollekelder.be/cafe/wp-content/uploads/2013/06/duvel.jpg" alt="Duvel">
-            <div class="content">
-                <div class="name">Duvel</div>
-                <div class="price">€3,00</div>
-            </div>
-        </div>
-    </div>
+                // Visual feedback
+                $this.addClass('adding');
 
-    <div class="category-title">Wijn</div>
-    <div class="button-container">
-        <div class="button" onclick="addDrink('Rode Wijn', 3.50)">
-            <img src="https://cdn.pixabay.com/photo/2018/01/12/09/45/glass-3077869_640.jpg" alt="Rode Wijn">
-            <div class="content">
-                <div class="name">Rode Wijn</div>
-                <div class="price">€3,50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Witte Wijn', 3.50)">
-            <img src="https://www.hamatuswines.be/cdn/shop/collections/glas_witte_wijn_square.jpg?v=1681142917"
-                alt="Witte Wijn">
-            <div class="content">
-                <div class="name">Witte Wijn</div>
-                <div class="price">€3,50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Rosé Wijn', 3.50)">
-            <img src="https://wijn.nl/wp-content/uploads/2019/03/shutterstock_569790466.jpg" alt="Rosé Wijn">
-            <div class="content">
-                <div class="name">Rosé Wijn</div>
+                addDrinkToUser(drinkName, drinkPrice, $this);
+            });
 
-                <div class="price">€3,50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('cava glas', 3.50)">
-            <img src="https://www.hetfeestvarken.be/sites/default/files/styles/400_breed_cropped/public/aanbod/cavaglas.jpg?itok=D2XtOEa5&sc=a54a881f8d136b2acddb36d55f0bb2bd"
-                alt="cava glas">
-            <div class="content">
-                <div class="name">cava</div>
-                <div class="price">€3.50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('cava fles', 19)">
-            <img src="https://www.wijnbeurs.be/media/catalog/product/K/2/K200815_baron_de_lion_cava_1.png?quality=95&fit=bounds&height=560&width=700&bg-color=FFF"
-                alt="cava fles">
-            <div class="content">
-                <div class="name">cava fles</div>
-                <div class="price">€19</div>
-            </div>
-        </div>
-    </div>
+            // Refresh drinks button
+            $('#refreshDrinks').click(function () {
+                showToast("Drink list refreshed");
+            });
 
-    <div class="category-title">Snacks</div>
-    <div class="button-container">
-        <div class="button" onclick="addDrink('Croque Monsieur', 3.00)">
-            <img src="https://frifri.be/wp-content/uploads/2019/07/Frifri_Moules_Bakplaten_M005_Croque_Prod_72dpi_3.jpg"
-                alt="Croque Monsieur">
-            <div class="content">
-                <div class="name">Croque Monsieur</div>
-                <div class="price">€3,00</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Warme Hapjes', 3.50)">
-            <img src="https://primary.jwwb.nl/public/y/d/o/temp-mbuspsmwnbptlohvtmgf/45pqem/warme-hapjes-4.png"
-                alt="Warme Hapjes">
-            <div class="content">
-                <div class="name">Warme Hapjes</div>
-                <div class="price">€3,50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Aiki Noodles', 3.50)">
-            <img src="https://shop.royco.be/cdn/shop/files/AikiSweetChilicup_3620x.jpg?v=1684837349" alt="Aiki Noodles">
-            <div class="content">
-                <div class="name">Aiki Noodles</div>
-                <div class="price">€3,50</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Soep', 2.40)">
-            <img src="https://static.colruytgroup.com/images/500x500/std.lang.all/36/70/asset-3353670.jpg" alt="Soep">
-            <div class="content">
-                <div class="name">Soep</div>
-                <div class="price">€2.40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Hotdog', 2.40)">
-            <img src="https://wmimages.bruzz.be/styles/944158c1b7568d001a6615c44c04f5a89df9e29d/bulk_image_upload/1680597612/92c5ca74-1839-hot-dog.jpg?style=W3sicmVzaXplIjp7ImZpdCI6Imluc2lkZSIsIndpZHRoIjozNTAsImhlaWdodCI6bnVsbCwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfX0seyJqcGVnIjp7InF1YWxpdHkiOjk1fX1d&sign=a2a8a01768ccdb58e09003c40df6defee2b39e7a095bda2e1fbbd87bdbddd355"
-                alt="Hotdog">
-            <div class="content">
-                <div class="name">Hotdog (alleen zaterdag)</div>
-                <div class="price">€2.40</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Chips', 1.90)">
-            <img src="https://img.discountoffice.cloud/u04IvtWDleSGCh954WCYycnCnFawMglzFPmqix8uGCA/bg:ffffff/rs:fit:640:480:1:1/g:ce/bG9jYWw6Ly8vZGlzY291bnQtd2Vic2l0ZS9wcm9kdWN0SW1hZ2VzLzgvb3JnL1ExMzk2NjA3LTIuanBn.webp"
-                alt="Chips">
-            <div class="content">
-                <div class="name">Chips</div>
-                <div class="price">€1,90</div>
-            </div>
-        </div>
-        <div class="button" onclick="addDrink('Snoep', 1.90)">
-            <img src="https://www.calipage.be/static/images/high-res/29013_P.jpg" alt="Snoep">
-            <div class="content">
-                <div class="name">Snoep</div>
-                <div class="price">€1,90</div>
-            </div>
-        </div>
-    </div>
-    <!-- Voeg hier de andere categorieën toe zoals in je originele bestand -->
+            // Back to welcome button
+            $('#backToWelcome').click(function () {
+                window.location.href = '/welcome';
+            });
+        });
 
-    <div class="button-container">
-        <button class="action-button bill-button" onclick="fetchDatabaseContents()">Rekening</button>
-        <button class="action-button next-button" onclick="goToSummary()">Volgende</button>
-    </div>
+        function addDrinkToUser(drinkName, drinkPrice, $element) {
+            // Add loader to the drink item
+            const $loader = $('<div class="loader"></div>');
+            $element.append($loader);
+            $loader.show();
 
-    <div id="message"></div>
-    <div id="drankjes"></div>
+            $.ajax({
+                url: '/add_user_drink',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    user_name: userName,
+                    drink_name: drinkName,
+                    drink_price: drinkPrice
+                }),
+                success: function (response) {
+                    $loader.hide();
+                    $element.removeClass('adding');
+
+                    if (response.success) {
+                        // Show success toast
+                        showToast(response.message);
+
+                        // Add the drink to the table directly without reloading
+                        addDrinkToTable(drinkName, drinkPrice);
+
+                        // Update total
+                        updateTotal(parseFloat(drinkPrice));
+                    } else {
+                        showToast("Error: " + response.error, true);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $loader.hide();
+                    $element.removeClass('adding');
+                    showToast("Error: " + error, true);
+                }
+            });
+        }
+
+        function addDrinkToTable(drinkName, drinkPrice) {
+            const now = new Date();
+            const formattedDate = now.toISOString().replace('T', ' ').substring(0, 19);
+
+            // Hide "no drinks" message if present
+            $('#noDrinksMessage').hide();
+
+            // Make sure table is visible
+            $('table').show();
+            $('.total-section').show();
+
+            // Add new row to table
+            const newRow = `
+                <tr>
+                    <td>${drinkName}</td>
+                    <td>€${drinkPrice}</td>
+                    <td>${formattedDate}</td>
+                </tr>
+            `;
+
+            $('#drinksTableBody').prepend(newRow);
+        }
+
+        function updateTotal(amount) {
+            totalSpent += amount;
+            $('#totalAmount').text(`€${totalSpent.toFixed(2)}`);
+        }
+
+        function showToast(message, isError = false) {
+            const toastContainer = $('#toastContainer');
+            const toast = $('<div class="toast"></div>');
+
+            toast.text(message);
+
+            if (isError) {
+                toast.css('background-color', '#f8d7da');
+                toast.css('color', '#721c24');
+            }
+
+            toastContainer.append(toast);
+
+            // Remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
 </body>
+
 </html>

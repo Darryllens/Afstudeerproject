@@ -1,52 +1,213 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Welkom - Patro Hoevenen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+        .welcome-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+        .card-instruction {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            border-left: 5px solid #0d6efd;
+        }
+        .scan-animation {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 5px solid #e9ecef;
+            border-top: 5px solid #0d6efd;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-message {
+            margin-top: 20px;
+            font-size: 18px;
+            min-height: 50px;
+        }
+        .hidden {
+            display: none;
+        }
+        #debugInfo {
+            font-family: monospace;
+            text-align: left;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-5">Registratie</h1>
-        <form id="registrationForm" method="POST" action="/register_user">
-            <div class="form-group">
-                <label for="name">Naam:</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="card_uid">Kaart UID:</label>
-                <input type="text" class="form-control" id="card_uid" name="card_uid" value="{{ uid }}" readonly>
-            </div>
-            <button type="submit" class="btn btn-primary">Registreren</button>
-        </form>
-        <div id="responseMessage" class="mt-3"></div>
+    <div class="container welcome-container">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Patro Hoevenen Logo" class="logo" onerror="this.style.display='none'">
+        <h1>Welkom bij Patro Hoevenen</h1>
+        
+        <div class="card-instruction">
+            <h3>Scan je kaart om verder te gaan</h3>
+            <p>Houd je lidkaart tegen de NFC-lezer om in te loggen</p>
+            <div class="scan-animation" id="scanAnimation"></div>
+        </div>
+        
+        <div class="status-message" id="statusMessage"></div>
+        
+        <div id="redirectButtons" style="display:none;" class="mt-3">
+            <p>Kaart herkend! Klik hieronder om door te gaan:</p>
+            <a href="/index" class="btn btn-lg btn-success">Ga naar Index Pagina</a>
+        </div>
+        
+        <div id="registerButtons" style="display:none;" class="mt-3">
+            <p>Onbekende kaart! Klik hieronder om te registreren:</p>
+            <a href="/registration" class="btn btn-lg btn-warning">Registreer Nieuwe Kaart</a>
+        </div>
+        
+        <!-- Test knoppen voor debugging -->
+        <div class="mt-4 mb-4 p-3 bg-light border">
+            <h4>Test Opties (alleen voor ontwikkeling)</h4>
+            <button onclick="testRedirect()" class="btn btn-primary me-2">Test Redirect naar Index</button>
+            <button onclick="testRegistrationRedirect()" class="btn btn-warning me-2">Test Redirect naar Registratie</button>
+            <button onclick="checkForNewScans(true)" class="btn btn-success me-2">Check voor Nieuwe Scans</button>
+            <div id="debugInfo"></div>
+        </div>
+        
+        <div class="mt-4">
+            <p>Heb je nog geen kaart of zijn er problemen?</p>
+            <a href="#" class="btn btn-outline-primary">Neem contact op</a>
+        </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('registrationForm').onsubmit = function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-            fetch('/register_user', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                const messageDiv = document.getElementById('responseMessage');
-                if (data.success) {
-                    messageDiv.innerHTML = '<div class="alert alert-success">Registratie succesvol!</div>';
-                    setTimeout(() => {
-                        window.location.href = '/welcome.html';
-                    }, 2000);
-                } else {
-                    messageDiv.innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
-                }
-            })
-            .catch(error => {
-                document.getElementById('responseMessage').innerHTML = '<div class="alert alert-danger">Er is een fout opgetreden.</div>';
-            });
-        };
+        // Debug logging functie
+        function logDebug(message) {
+            console.log(message);
+            const debugElement = document.getElementById('debugInfo');
+            if (debugElement) {
+                const timestamp = new Date().toLocaleTimeString();
+                debugElement.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+                debugElement.scrollTop = debugElement.scrollHeight;
+            }
+        }
+        
+        // Status berichten bijwerken
+        function updateStatus(message, isError = false) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = 'status-message';
+            
+            if (isError) {
+                statusElement.classList.add('text-danger');
+            } else {
+                statusElement.classList.add('text-success');
+            }
+            
+            logDebug("Status update: " + message);
+        }
+
+        // Test functie voor redirect
+        function testRedirect() {
+            logDebug("Test redirect naar /index...");
+            window.location.href = "/index";
+        }
+        
+        // Test functie voor registratie redirect
+        function testRegistrationRedirect() {
+            logDebug("Test redirect naar /registration...");
+            window.location.href = "/registration";
+        }
+
+        // Functie om regelmatig te controleren of er een nieuwe scan is
+        function checkForNewScans(isManualCheck = false) {
+            if (isManualCheck) {
+                logDebug("Handmatig controleren op nieuwe scans...");
+            }
+            
+            fetch('/check_scan')
+                .then(response => response.json())
+                .then(data => {
+                    if (isManualCheck) {
+                        logDebug("Scan check resultaat: " + JSON.stringify(data));
+                    }
+                    
+                    if (data.status === 'success') {
+                        // Nieuwe scan gevonden voor bekende gebruiker
+                        logDebug("Nieuwe scan gevonden voor gebruiker: " + data.user.name);
+                        updateStatus(`Welkom ${data.user.name || 'gebruiker'}!`);
+                        
+                        // Toon de handmatige redirect knop
+                        document.getElementById('redirectButtons').style.display = 'block';
+                        document.getElementById('registerButtons').style.display = 'none';
+                        
+                        // Als er een redirect is, navigeer daar naartoe
+                        if (data.redirect) {
+                            logDebug("Redirecting naar: " + data.redirect);
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1500);
+                        }
+                    } else if (data.status === 'not_found') {
+                        // Onbekende kaart gevonden
+                        logDebug("Onbekende kaart gescand: " + data.card_uid);
+                        updateStatus('Onbekende kaart gescand!', true);
+                        
+                        // Toon registratie knoppen
+                        document.getElementById('redirectButtons').style.display = 'none';
+                        document.getElementById('registerButtons').style.display = 'block';
+                        
+                        // Als er een redirect is, navigeer daar naartoe
+                        if (data.redirect) {
+                            logDebug("Redirecting naar: " + data.redirect);
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1500);
+                        }
+                    } else if (isManualCheck && data.status === 'no_scan') {
+                        updateStatus('Geen recente scan gevonden', true);
+                    }
+                })
+                .catch(error => {
+                    if (isManualCheck) {
+                        logDebug("Fout bij controleren op scans: " + error);
+                        updateStatus('Fout bij controleren op scans', true);
+                    }
+                });
+        }
+
+        // Start het controleren op nieuwe scans elke 2 seconden
+        const scanCheckInterval = setInterval(checkForNewScans, 2000);
+        
+        // Log wanneer de pagina is geladen
+        document.addEventListener('DOMContentLoaded', function() {
+            logDebug("Welkom pagina geladen. Polling voor NFC scans is gestart.");
+            updateStatus('Wacht op kaart scan...');
+        });
     </script>
 </body>
 </html>
