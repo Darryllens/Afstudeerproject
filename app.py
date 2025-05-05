@@ -123,12 +123,37 @@ def user_index(user_name):
 
 @app.route("/summary")
 def summary():
-    return render_template("summary.html")
+    # Check if user is authenticated as admin
+    if 'kassa_user' not in session:
+        return redirect(url_for('welcome'))
+    
+    try:
+        # Get a fresh database connection
+        connection = get_db_connection()
+        if not connection:
+            return redirect(url_for('welcome'))
+            
+        cursor = connection.cursor(dictionary=True)
+            
+        # Get all users
+        query = "SELECT * FROM users ORDER BY name"
+        cursor.execute(query)
+        users = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template("summary.html", 
+                              users=users,
+                              kassa_user=session.get('kassa_user', 'Admin'))
+    except Error as e:
+        print(f"Database error: {e}")
+        return redirect(url_for('welcome'))
 
 @app.route("/registration")
 def registration():
     # Haal het laatste gescande UID op voor automatisch invullen in registratie
-    return render_template("registration.html", card_uid=last_scanned_uid)
+    return render_template("Registration.html", card_uid=last_scanned_uid)
 
 @app.route("/receive_nfc", methods=["POST"])
 def receive_nfc():
@@ -151,54 +176,70 @@ def receive_nfc():
         last_scan_time = time.time()  # Sla de huidige tijd op
         print(f"Laatste UID ontvangen: {uid}")
         
-        # Controleer of de kaart in de database voorkomt met een verse connectie
-        try:
-            # Get a fresh connection for each check
-            connection = get_db_connection()
-            if not connection:
-                return jsonify({
-                    "status": "error",
-                    "message": "Kan geen verbinding maken met de database"
-                })
-                
-            cursor = connection.cursor(dictionary=True)
-                
-            query = "SELECT * FROM users WHERE card_uid = %s"
-            cursor.execute(query, (uid,))
-            user = cursor.fetchone()
+        # Get the current route if available
+        current_route = data.get('current_route', '')
+        print(f"Current route: {current_route}")
+        
+        # Get a fresh connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({
+                "status": "error",
+                "message": "Kan geen verbinding maken met de database"
+            })
             
+        cursor = connection.cursor(dictionary=True)
+        
+        # First check if the card is in the kassa table - redirect to summary regardless of current page
+        query = "SELECT * FROM kassa WHERE card_uid = %s"
+        cursor.execute(query, (uid,))
+        kassa_user = cursor.fetchone()
+        
+        if kassa_user:
+            # Card is in kassa table, redirect to summary
             cursor.close()
             connection.close()
             
-            if user:
-                print("User found:", user)
-                # Save user info in session
-                session['user_name'] = user['name']
-                session['card_uid'] = user['card_uid']
-                
-                return jsonify({
-                    "status": "success",
-                    "message": "Gebruiker gevonden",
-                    "user": user,
-                    "redirect": f"/user/{user['name']}"  # Redirect to user's personal page
-                })
-            else:
-                print("User not found for card:", uid)
-                # Clear session if it exists
-                session.clear()
-                
-                return jsonify({
-                    "status": "not_found",
-                    "message": "Gebruiker niet gevonden voor deze kaart",
-                    "card_uid": uid,
-                    "redirect": "/registration"  # Redirect to registration page
-                })
-                
-        except Error as e:
-            print(f"Database error: {e}")
+            print(f"Kassa user found: {kassa_user['name']}, redirecting to summary")
+            session['kassa_user'] = kassa_user['name']
+            
             return jsonify({
-                "status": "error",
-                "message": f"Database fout: {str(e)}"
+                "status": "success",
+                "message": "Kassa gebruiker gevonden",
+                "user": kassa_user,
+                "redirect": "/summary"  # Redirect to summary page
+            })
+        
+        # Regular user check (if not a kassa user)
+        query = "SELECT * FROM users WHERE card_uid = %s"
+        cursor.execute(query, (uid,))
+        user = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        if user:
+            print("User found:", user)
+            # Save user info in session
+            session['user_name'] = user['name']
+            session['card_uid'] = user['card_uid']
+            
+            return jsonify({
+                "status": "success",
+                "message": "Gebruiker gevonden",
+                "user": user,
+                "redirect": f"/user/{user['name']}"  # Redirect to user's personal page
+            })
+        else:
+            print("User not found for card:", uid)
+            # Clear session if it exists
+            session.clear()
+            
+            return jsonify({
+                "status": "not_found",
+                "message": "Gebruiker niet gevonden voor deze kaart",
+                "card_uid": uid,
+                "redirect": "/registration"  # Redirect to registration page
             })
     else:
         print("No UID received in JSON data")
@@ -208,59 +249,77 @@ def receive_nfc():
 def check_scan():
     global last_scanned_uid, last_scan_time
     
+    # Get the current route
+    current_route = request.args.get('route', '')
+    print(f"Check scan called from route: {current_route}")
+    
     # Controleer of er een recente scan is (binnen de laatste 10 seconden)
     if last_scanned_uid and time.time() - last_scan_time < 10:
         print(f"Recent scan found: {last_scanned_uid}")
         
-        # Controleer of de kaart in de database voorkomt met een verse connectie
-        try:
-            # Get a fresh connection for each check
-            connection = get_db_connection()
-            if not connection:
-                return jsonify({
-                    "status": "error",
-                    "message": "Kan geen verbinding maken met de database"
-                })
-                
-            cursor = connection.cursor(dictionary=True)
+        # Get a fresh connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({
+                "status": "error",
+                "message": "Kan geen verbinding maken met de database"
+            })
             
-            query = "SELECT * FROM users WHERE card_uid = %s"
-            cursor.execute(query, (last_scanned_uid,))
-            user = cursor.fetchone()
+        cursor = connection.cursor(dictionary=True)
+        
+        # Check if the card is in the kassa table - redirect to summary regardless of current page
+        query = "SELECT * FROM kassa WHERE card_uid = %s"
+        cursor.execute(query, (last_scanned_uid,))
+        kassa_user = cursor.fetchone()
+        
+        if kassa_user:
+            # Reset laatste scan tijd
+            last_scan_time = 0
             
+            # Card is in kassa table, redirect to summary
             cursor.close()
             connection.close()
             
-            # Reset laatste scan tijd om te voorkomen dat dezelfde scan
-            # meerdere keren wordt gebruikt
-            last_scan_time = 0
+            session['kassa_user'] = kassa_user['name']
             
-            if user:
-                # Save user info in session
-                session['user_name'] = user['name']
-                session['card_uid'] = user['card_uid']
-                
-                return jsonify({
-                    "status": "success",
-                    "message": "Gebruiker gevonden",
-                    "user": user,
-                    "redirect": f"/user/{user['name']}"  # Redirect to user's personal page
-                })
-            else:
-                # Clear session if it exists
-                session.clear()
-                
-                return jsonify({
-                    "status": "not_found",
-                    "message": "Gebruiker niet gevonden voor deze kaart",
-                    "card_uid": last_scanned_uid,
-                    "redirect": "/registration"  # Redirect to registration page
-                })
-        except Error as e:
-            print(f"Database error: {e}")
             return jsonify({
-                "status": "error",
-                "message": f"Database fout: {str(e)}"
+                "status": "success",
+                "message": "Kassa gebruiker gevonden",
+                "user": kassa_user,
+                "redirect": "/summary"  # Redirect to summary page
+            })
+        
+        # Regular user check (if not a kassa user)
+        query = "SELECT * FROM users WHERE card_uid = %s"
+        cursor.execute(query, (last_scanned_uid,))
+        user = cursor.fetchone()
+        
+        # Reset laatste scan tijd
+        last_scan_time = 0
+        
+        cursor.close()
+        connection.close()
+        
+        if user:
+            # Save user info in session
+            session['user_name'] = user['name']
+            session['card_uid'] = user['card_uid']
+            
+            return jsonify({
+                "status": "success",
+                "message": "Gebruiker gevonden",
+                "user": user,
+                "redirect": f"/user/{user['name']}"  # Redirect to user's personal page
+            })
+        else:
+            # Clear session if it exists
+            session.clear()
+            
+            return jsonify({
+                "status": "not_found",
+                "message": "Gebruiker niet gevonden voor deze kaart",
+                "card_uid": last_scanned_uid,
+                "redirect": "/registration"  # Redirect to registration page
             })
     else:
         return jsonify({
@@ -407,6 +466,189 @@ def add_user_drink():
             "success": False,
             "error": f"Algemene fout: {str(e)}"
         })
+
+@app.route("/get_user_drinks")
+def get_user_drinks():
+    # Check if user is authenticated as admin
+    if 'kassa_user' not in session:
+        return jsonify({"success": False, "error": "Niet geautoriseerd"})
+    
+    user_name = request.args.get('user_name')
+    if not user_name:
+        return jsonify({"success": False, "error": "Geen gebruikersnaam opgegeven"})
+    
+    try:
+        # Get a fresh database connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({"success": False, "error": "Database verbindingsfout"})
+            
+        cursor = connection.cursor(dictionary=True)
+        
+        # Create safe table name
+        safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
+        
+        try:
+            # Get all drinks for the user
+            query = f"SELECT * FROM `{safe_table_name}` ORDER BY added_on DESC"
+            cursor.execute(query)
+            drinks = cursor.fetchall()
+            
+            cursor.close()
+            connection.close()
+            
+            return jsonify({
+                "success": True,
+                "drinks": drinks
+            })
+        except Error as e:
+            print(f"Error retrieving user drinks: {e}")
+            cursor.close()
+            connection.close()
+            return jsonify({"success": False, "error": f"Fout bij ophalen drankjes: {str(e)}"})
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
+
+@app.route("/delete_drink", methods=["POST"])
+def delete_drink():
+    # Check if user is authenticated as admin
+    if 'kassa_user' not in session:
+        return jsonify({"success": False, "error": "Niet geautoriseerd"})
+    
+    data = request.get_json()
+    
+    if not data or not all(key in data for key in ['user_name', 'drink_id']):
+        return jsonify({"success": False, "error": "Ontbrekende vereiste gegevens"})
+    
+    user_name = data['user_name']
+    drink_id = data['drink_id']
+    
+    try:
+        # Get a fresh database connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({"success": False, "error": "Database verbindingsfout"})
+            
+        cursor = connection.cursor(dictionary=True)
+        
+        # Create safe table name
+        safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
+        
+        # Delete the drink
+        query = f"DELETE FROM `{safe_table_name}` WHERE id = %s"
+        cursor.execute(query, (drink_id,))
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Drankje verwijderd"
+        })
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
+
+@app.route("/clear_user_drinks", methods=["POST"])
+def clear_user_drinks():
+    # Check if user is authenticated as admin
+    if 'kassa_user' not in session:
+        return jsonify({"success": False, "error": "Niet geautoriseerd"})
+    
+    data = request.get_json()
+    
+    if not data or 'user_name' not in data:
+        return jsonify({"success": False, "error": "Ontbrekende gebruikersnaam"})
+    
+    user_name = data['user_name']
+    
+    try:
+        # Get a fresh database connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({"success": False, "error": "Database verbindingsfout"})
+            
+        cursor = connection.cursor(dictionary=True)
+        
+        # Create safe table name
+        safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
+        
+        # Delete all drinks for the user
+        query = f"DELETE FROM `{safe_table_name}`"
+        cursor.execute(query)
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Alle drankjes verwijderd"
+        })
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
+
+@app.route("/delete_user", methods=["POST"])
+def delete_user():
+    # Check if user is authenticated as admin
+    if 'kassa_user' not in session:
+        return jsonify({"success": False, "error": "Niet geautoriseerd"})
+    
+    data = request.get_json()
+    
+    if not data or 'user_name' not in data:
+        return jsonify({"success": False, "error": "Ontbrekende gebruikersnaam"})
+    
+    user_name = data['user_name']
+    
+    try:
+        # Get a fresh database connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({"success": False, "error": "Database verbindingsfout"})
+            
+        cursor = connection.cursor(dictionary=True)
+        
+        # First, verify that the user exists
+        query = "SELECT * FROM users WHERE name = %s"
+        cursor.execute(query, (user_name,))
+        user = cursor.fetchone()
+        
+        if not user:
+            cursor.close()
+            connection.close()
+            return jsonify({"success": False, "error": "Gebruiker niet gevonden"})
+        
+        # Create safe table name
+        safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
+        
+        # Drop the user's table
+        try:
+            drop_table_query = f"DROP TABLE IF EXISTS `{safe_table_name}`"
+            cursor.execute(drop_table_query)
+            connection.commit()
+        except Error as e:
+            print(f"Error dropping user table: {e}")
+            # Continue with deleting the user even if table drop fails
+        
+        # Delete the user from the users table
+        delete_query = "DELETE FROM users WHERE name = %s"
+        cursor.execute(delete_query, (user_name,))
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Gebruiker verwijderd"
+        })
+    except Error as e:
+        print(f"Database error: {e}")
+        return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

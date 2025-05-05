@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
+    <title>Welkom - Patro Hoevenen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
@@ -14,130 +14,292 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
             background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
             color: #333;
         }
 
-        .welcome-container {
-            text-align: center;
-            padding: 40px;
-            background-color: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            width: 90%;
-            margin: 20px;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            color: #0800ff;
-            margin-bottom: 20px;
-        }
-
-        p {
-            font-size: 1.2rem;
-        }
-
-        .start-button {
+        .header {
             background-color: #0800ff;
             color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .start-button:hover {
-            background-color: #0056b3;
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
         }
 
-        .logo {
+        .user-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .user-info img {
+            height: 30px;
+            margin-right: 10px;
+        }
+
+        .main-container {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
             margin-bottom: 20px;
         }
 
-        .logo img {
-            max-width: 100px;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
 
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0800ff;
+            margin: 0;
+        }
+
+        .scan-animation {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 5px solid #e9ecef;
+            border-top: 5px solid #0800ff;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .card-instruction {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            border-left: 5px solid #0d6efd;
+            text-align: center;
+        }
+        
         .status-message {
             margin-top: 20px;
-            padding: 10px;
+            font-size: 18px;
+            min-height: 50px;
+            text-align: center;
+        }
+        
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .toast {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
             border-radius: 5px;
-            display: none;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s, fadeOut 0.5s 2.5s forwards;
+            max-width: 300px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
         }
 
-        .status-message.info {
-            background-color: #e3f2fd;
-            color: #0d47a1;
-            display: block;
-        }
-
-        .status-message.success {
-            background-color: #e8f5e9;
-            color: #1b5e20;
-            display: block;
-        }
-
-        .status-message.error {
-            background-color: #ffebee;
-            color: #b71c1c;
-            display: block;
-        }
-
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 2rem;
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
             }
 
-            p {
-                font-size: 1rem;
-            }
-
-            .welcome-container {
-                padding: 30px;
+            .header h1 {
+                font-size: 1.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="welcome-container">
-        <div class="logo">
-            <img src="https://www.foot24.be/logos/hoevenen.png" alt="Hoevenen Logo">
-        </div>
-        <h1>Welcome</h1>
-        <p>Scan your NFC card to proceed.</p>
-        <div id="statusMessage" class="status-message"></div>
+    <div class="header">
+        <h1>Welkom bij Patro Hoevenen</h1>
     </div>
+
+    <div class="user-info">
+        <img src="https://www.foot24.be/logos/hoevenen.png" alt="Logo" onerror="this.style.display='none'">
+        <span>Scan je kaart om verder te gaan</span>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="main-container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Kaart Scanner</h2>
+            </div>
+            
+            <div class="card-instruction">
+                <h3>Scan je kaart om verder te gaan</h3>
+                <p>Houd je lidkaart tegen de NFC-lezer om in te loggen</p>
+                <div class="scan-animation" id="scanAnimation"></div>
+            </div>
+            
+            <div class="status-message" id="statusMessage">Wacht op kaart scan...</div>
+        </div>
+    </div>
+
     <script>
-        function checkCardScan() {
-            // Vraag de server of een kaart is gescand
-            $.ajax({
-                url: '/check_scan',
-                type: 'GET',
-                success: function(response) {
-                    if (response.success) {
-                        window.location.href = response.redirect;
-                    } else if (response.redirect === 'registration') {
-                        window.location.href = '/registration.html';
-                    } else {
-                        setTimeout(checkCardScan, 2000); // Probeer opnieuw na 2 seconden
+        // Function to show toast messages
+        function showToast(message, isError = false) {
+            const toastContainer = $('#toastContainer');
+            const toast = $('<div class="toast"></div>');
+            
+            toast.text(message);
+            
+            if (isError) {
+                toast.css('background-color', '#f8d7da');
+                toast.css('color', '#721c24');
+            }
+            
+            toastContainer.append(toast);
+            
+            // Remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+        
+        // Function to update status message
+        function updateStatus(message, isError = false) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            
+            if (isError) {
+                statusElement.style.color = '#721c24';
+            } else {
+                statusElement.style.color = '#155724';
+            }
+        }
+        
+        // Function to check for new NFC scans
+        function checkForNewScans() {
+            // Get current path
+            const currentPath = window.location.pathname;
+            
+            fetch('/check_scan?route=' + encodeURIComponent(currentPath))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('Card scan detected:', data);
+                        updateStatus(`Kaart herkend! Welkom ${data.user.name || 'gebruiker'}!`);
+                        
+                        // If redirect instruction is present, follow it
+                        if (data.redirect) {
+                            console.log('Redirecting to:', data.redirect);
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1500);
+                        }
+                    } else if (data.status === 'not_found') {
+                        updateStatus("Onbekende kaart gedetecteerd. Doorverwijzen naar registratie...", true);
+                        
+                        if (data.redirect) {
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 1500);
+                        }
                     }
+                })
+                .catch(error => {
+                    console.error('Error checking for scans:', error);
+                });
+        }
+        
+        // Function to handle direct NFC scans (from hardware)
+        function onNfcScan(uid) {
+            // Get the current path
+            const currentPath = window.location.pathname;
+            
+            updateStatus('Kaart gescand, controleren...');
+            
+            // Send the UID and the current route to the server
+            fetch('/receive_nfc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 },
-                error: function(xhr, status, error) {
-                    console.error('Er is een fout opgetreden:', xhr.responseText);
-                    setTimeout(checkCardScan, 2000); // Probeer opnieuw na 2 seconden
+                body: JSON.stringify({
+                    uid: uid,
+                    current_route: currentPath
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server response:', data);
+                
+                if (data.status === 'success') {
+                    updateStatus(`Kaart herkend! Welkom ${data.user.name || 'gebruiker'}!`);
+                    
+                    // If redirect instruction is present, follow it
+                    if (data.redirect) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1500);
+                    }
+                } else if (data.status === 'not_found') {
+                    updateStatus("Onbekende kaart. Doorverwijzen naar registratie...", true);
+                    
+                    if (data.redirect) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1500);
+                    }
+                } else {
+                    updateStatus("Fout bij verwerken van kaart", true);
                 }
+            })
+            .catch(error => {
+                console.error('Error processing card scan:', error);
+                updateStatus("Fout bij verwerken van kaart", true);
             });
         }
-
-        // Start de checkCardScan functie zodra de pagina is geladen
-        $(document).ready(function() {
-            checkCardScan();
+        
+        // Start polling for NFC scans every 2 seconds
+        setInterval(checkForNewScans, 2000);
+        
+        // Initial status
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Welcome page loaded. NFC scan polling started.");
         });
     </script>
 </body>

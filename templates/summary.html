@@ -3,43 +3,665 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Summary</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Admin Summary - Patro Hoevenen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
+            color: #333;
+        }
+
+        .header {
+            background-color: #0800ff;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .admin-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .admin-info img {
+            height: 30px;
+            margin-right: 10px;
+        }
+        
+        .admin-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .main-container {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0800ff;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        table th {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+
+        .button {
+            background-color: #0800ff;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+        
+        .button.danger {
+            background-color: #dc3545;
+        }
+        
+        .button.danger:hover {
+            background-color: #c82333;
+        }
+        
+        .button.secondary {
+            background-color: #6c757d;
+        }
+        
+        .button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .success-message, .error-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .toast {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s, fadeOut 0.5s 2.5s forwards;
+            max-width: 300px;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+        
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0800ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .user-selector {
+            margin-bottom: 20px;
+        }
+        
+        .user-selector select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        
+        .user-details {
+            display: none;
+        }
+        
+        .delete-button {
+            color: #dc3545;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .delete-button:hover {
+            text-decoration: underline;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #6c757d;
+        }
+        
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal-title {
+            margin-top: 0;
+            color: #0800ff;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-5">Summary of Actions</h1>
-        <div id="summary-content" class="mt-4">
-            <!-- Summary content will be dynamically inserted here based on the card UID -->
+    <div class="header">
+        <h1>Admin Dashboard - Patro Hoevenen</h1>
+    </div>
+
+    <div class="admin-info">
+        <img src="https://www.foot24.be/logos/hoevenen.png" alt="Logo" onerror="this.style.display='none'">
+        <span id="adminName">{{ kassa_user }}<span class="admin-badge">Admin</span></span>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Bevestiging</h3>
+            <p id="confirmationText">Weet je zeker dat je dit item wilt verwijderen?</p>
+            <div class="modal-buttons">
+                <button id="cancelButton" class="button secondary">Annuleren</button>
+                <button id="confirmButton" class="button danger">Verwijderen</button>
+            </div>
         </div>
-        <a href="/" class="btn btn-primary mt-3">Terug naar Home</a>
+    </div>
+
+    <div class="main-container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Gebruikersoverzicht</h2>
+                <button id="refreshUsers" class="button">Vernieuwen</button>
+            </div>
+            
+            <div class="user-selector">
+                <select id="userSelect">
+                    <option value="">Selecteer een gebruiker</option>
+                    {% for user in users %}
+                    <option value="{{ user.name }}">{{ user.name }}</option>
+                    {% endfor %}
+                </select>
+                <button id="loadUserData" class="button">Gegevens Laden</button>
+                <button id="deleteUser" class="button danger">Gebruiker Verwijderen</button>
+            </div>
+
+            <div id="userDetails" class="user-details">
+                <h3 id="selectedUserName"></h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Drink</th>
+                            <th>Prijs</th>
+                            <th>Datum</th>
+                            <th>Actie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userDrinksList">
+                        <!-- User drinks will be loaded here -->
+                    </tbody>
+                </table>
+                <div class="total-section">
+                    <span>Totaal</span>
+                    <span id="totalAmount">€0.00</span>
+                </div>
+                
+                <div class="empty-state" id="noDrinksMessage">
+                    Deze gebruiker heeft nog geen drankjes besteld.
+                </div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button id="clearAllDrinks" class="button danger">Alle Drankjes Verwijderen</button>
+            <button id="backToWelcome" class="button">Terug naar Welkom</button>
+        </div>
     </div>
 
     <script>
-        // Fetch summary data based on the unique card UID
-        async function fetchSummary() {
-            const response = await fetch('/get_summary'); // Endpoint to get summary data
-            const data = await response.json();
-            const summaryContent = document.getElementById('summary-content');
-
-            if (data.success) {
-                summaryContent.innerHTML = `
-                    <h2>Drankjes voor UID: ${data.card_uid}</h2>
-                    <ul class="list-group">
-                        ${data.drinks.map(drink => `
-                            <li class="list-group-item">
-                                ${drink.drink_name} - €${drink.drink_price} (Toegevoegd op: ${drink.added_on})
-                            </li>
-                        `).join('')}
-                    </ul>
-                `;
-            } else {
-                summaryContent.innerHTML = `<p>${data.error}</p>`;
-            }
+        let selectedUser = '';
+        let currentDrinks = [];
+        let currentTotal = 0;
+        
+        $(document).ready(function() {
+            // Load user data when selecting a user
+            $('#loadUserData').click(function() {
+                selectedUser = $('#userSelect').val();
+                if (selectedUser) {
+                    loadUserDrinks(selectedUser);
+                } else {
+                    showToast("Selecteer eerst een gebruiker", true);
+                }
+            });
+            
+            // Delete user button
+            $('#deleteUser').click(function() {
+                selectedUser = $('#userSelect').val();
+                if (!selectedUser) {
+                    showToast("Selecteer eerst een gebruiker", true);
+                    return;
+                }
+                
+                showConfirmation(
+                    `Weet je zeker dat je de gebruiker "${selectedUser}" wilt verwijderen? Dit verwijdert zowel de gebruiker als alle drankjes permanent.`,
+                    function() {
+                        deleteUser(selectedUser);
+                    }
+                );
+            });
+            
+            // Refresh users list
+            $('#refreshUsers').click(function() {
+                location.reload();
+            });
+            
+            // Back to welcome button
+            $('#backToWelcome').click(function() {
+                window.location.href = '/welcome';
+            });
+            
+            // Clear all drinks for selected user
+            $('#clearAllDrinks').click(function() {
+                if (!selectedUser) {
+                    showToast("Selecteer eerst een gebruiker", true);
+                    return;
+                }
+                
+                showConfirmation(
+                    `Weet je zeker dat je ALLE drankjes wilt verwijderen voor ${selectedUser}?`,
+                    function() {
+                        clearAllDrinks(selectedUser);
+                    }
+                );
+            });
+            
+            // Set up modal cancel button
+            $('#cancelButton').click(function() {
+                hideConfirmation();
+            });
+            
+            // Start polling for NFC scans
+            startPollingForScans();
+        });
+        
+        function loadUserDrinks(userName) {
+            showToast(`Gegevens laden voor ${userName}...`);
+            
+            fetch(`/get_user_drinks?user_name=${encodeURIComponent(userName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show user details section
+                        $('#userDetails').show();
+                        $('#selectedUserName').text(userName);
+                        
+                        // Store current drinks
+                        currentDrinks = data.drinks;
+                        
+                        // Update drinks list
+                        updateDrinksList();
+                        
+                        // Calculate and update total
+                        calculateTotal();
+                    } else {
+                        showToast(`Fout: ${data.error}`, true);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading user drinks:', error);
+                    showToast("Fout bij het laden van gebruikersgegevens", true);
+                });
         }
-
-        // Call the function to fetch summary data when the page loads
-        window.onload = fetchSummary;
+        
+        function updateDrinksList() {
+            const $drinksList = $('#userDrinksList');
+            $drinksList.empty();
+            
+            if (currentDrinks.length === 0) {
+                $('#noDrinksMessage').show();
+                $('table').hide();
+                $('.total-section').hide();
+                return;
+            }
+            
+            $('#noDrinksMessage').hide();
+            $('table').show();
+            $('.total-section').show();
+            
+            currentDrinks.forEach(drink => {
+                const row = `
+                    <tr data-id="${drink.id}">
+                        <td>${drink.drink_name}</td>
+                        <td>€${drink.drink_price}</td>
+                        <td>${drink.added_on}</td>
+                        <td><button class="delete-button" onclick="deleteDrink(${drink.id})">Verwijderen</button></td>
+                    </tr>
+                `;
+                $drinksList.append(row);
+            });
+        }
+        
+        function calculateTotal() {
+            currentTotal = currentDrinks.reduce((total, drink) => total + parseFloat(drink.drink_price), 0);
+            $('#totalAmount').text(`€${currentTotal.toFixed(2)}`);
+        }
+        
+        function deleteDrink(drinkId) {
+            const drink = currentDrinks.find(d => d.id === drinkId);
+            if (!drink) return;
+            
+            showConfirmation(
+                `Weet je zeker dat je "${drink.drink_name}" wilt verwijderen?`,
+                function() {
+                    performDeleteDrink(drinkId);
+                }
+            );
+        }
+        
+        function performDeleteDrink(drinkId) {
+            fetch('/delete_drink', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_name: selectedUser,
+                    drink_id: drinkId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove drink from local list
+                    currentDrinks = currentDrinks.filter(d => d.id !== drinkId);
+                    
+                    // Update UI
+                    updateDrinksList();
+                    calculateTotal();
+                    
+                    showToast("Drankje verwijderd");
+                } else {
+                    showToast(`Fout: ${data.error}`, true);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting drink:', error);
+                showToast("Fout bij het verwijderen van drankje", true);
+            });
+        }
+        
+        function clearAllDrinks(userName) {
+            fetch('/clear_user_drinks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_name: userName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear local drinks list
+                    currentDrinks = [];
+                    
+                    // Update UI
+                    updateDrinksList();
+                    calculateTotal();
+                    
+                    showToast("Alle drankjes verwijderd");
+                } else {
+                    showToast(`Fout: ${data.error}`, true);
+                }
+            })
+            .catch(error => {
+                console.error('Error clearing drinks:', error);
+                showToast("Fout bij het verwijderen van alle drankjes", true);
+            });
+        }
+        
+        function deleteUser(userName) {
+            fetch('/delete_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_name: userName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast("Gebruiker verwijderd");
+                    
+                    // Clear user details
+                    $('#userDetails').hide();
+                    
+                    // Reload page after a short delay
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(`Fout: ${data.error}`, true);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting user:', error);
+                showToast("Fout bij het verwijderen van gebruiker", true);
+            });
+        }
+        
+        function showConfirmation(message, onConfirm) {
+            $('#confirmationText').text(message);
+            $('#confirmButton').off('click').on('click', function() {
+                onConfirm();
+                hideConfirmation();
+            });
+            $('#confirmationModal').show();
+        }
+        
+        function hideConfirmation() {
+            $('#confirmationModal').hide();
+        }
+        
+        // Function to poll for NFC scans
+        function startPollingForScans() {
+            // Poll every 2 seconds
+            setInterval(checkForNewScans, 2000);
+        }
+        
+        // Function to check for new NFC scans
+        function checkForNewScans() {
+            // Get current path
+            const currentPath = window.location.pathname;
+            
+            fetch('/check_scan?route=' + encodeURIComponent(currentPath))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log('Card scan detected:', data);
+                        
+                        // If redirect instruction is present, follow it
+                        if (data.redirect) {
+                            console.log('Redirecting to:', data.redirect);
+                            window.location.href = data.redirect;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking for scans:', error);
+                });
+        }
+        
+        function showToast(message, isError = false) {
+            const toastContainer = $('#toastContainer');
+            const toast = $('<div class="toast"></div>');
+            
+            toast.text(message);
+            
+            if (isError) {
+                toast.css('background-color', '#f8d7da');
+                toast.css('color', '#721c24');
+            }
+            
+            toastContainer.append(toast);
+            
+            // Remove toast after animation completes
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
     </script>
 </body>
 </html>
