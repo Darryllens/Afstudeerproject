@@ -3,11 +3,11 @@
 #include <HTTPClient.h>
 
 // WiFi credentials
-const char* ssid = "Proximus-Home-2918";
-const char* password = "wj6xupaprwsd4";
+const char* ssid = "***";
+const char* password = "***";
 
 // Flask server details
-const char* serverUrl = "http://192.168.129.36:5000/receive_nfc";  // POST endpoint
+const char* serverUrl = "http://192.168.***.**:5000/receive_nfc";  // POST endpoint
 
 #define  PN532_IRQ      (2)
 #define  POLLING        (0)
