@@ -650,5 +650,6 @@ def delete_user():
         print(f"Database error: {e}")
         return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
 
+#testen of git werkt
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
