@@ -223,6 +223,7 @@ def receive_nfc():
             # Save user info in session
             session['user_name'] = user['name']
             session['card_uid'] = user['card_uid']
+            session['user_id'] = user['id']  # Also save user ID in session
             
             return jsonify({
                 "status": "success",
@@ -304,6 +305,7 @@ def check_scan():
             # Save user info in session
             session['user_name'] = user['name']
             session['card_uid'] = user['card_uid']
+            session['user_id'] = user['id']  # Also save user ID in session
             
             return jsonify({
                 "status": "success",
@@ -363,13 +365,19 @@ def register_user():
             cursor.execute(query, (card_uid, name))
             connection.commit()
             
+            # Get the newly created user ID
+            user_id = cursor.lastrowid
+            
             # Maak een nieuwe tabel aan voor deze gebruiker met de naam als tabelnaam
+            # UPDATED: Added foreign key reference to users table
             create_table_query = f"""
             CREATE TABLE IF NOT EXISTS `{safe_table_name}` (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 drink_name VARCHAR(255) NOT NULL,
                 drink_price DECIMAL(10, 2) NOT NULL,
-                added_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                added_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                user_id INT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )
             """
             
@@ -385,6 +393,7 @@ def register_user():
             # Store user info in session
             session['user_name'] = name
             session['card_uid'] = card_uid
+            session['user_id'] = user_id  # Store the user ID in the session
             
             return redirect(url_for('user_index', user_name=name))
         else:
@@ -442,8 +451,9 @@ def add_user_drink():
         safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
         
         # Insert the drink into the user's table
-        insert_query = f"INSERT INTO `{safe_table_name}` (drink_name, drink_price) VALUES (%s, %s)"
-        cursor.execute(insert_query, (drink_name, drink_price))
+        # UPDATED: Added user_id to insert query
+        insert_query = f"INSERT INTO `{safe_table_name}` (drink_name, drink_price, user_id) VALUES (%s, %s, %s)"
+        cursor.execute(insert_query, (drink_name, drink_price, user['id']))
         connection.commit()
         
         cursor.close()
@@ -625,7 +635,9 @@ def delete_user():
         # Create safe table name
         safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
         
-        # Drop the user's table
+        # We don't need to explicitly drop the user's table anymore
+        # because of the ON DELETE CASCADE constraint in the foreign key
+        # But we'll keep the code to ensure backward compatibility
         try:
             drop_table_query = f"DROP TABLE IF EXISTS `{safe_table_name}`"
             cursor.execute(drop_table_query)
@@ -635,6 +647,7 @@ def delete_user():
             # Continue with deleting the user even if table drop fails
         
         # Delete the user from the users table
+        # This will automatically delete all related drinks due to ON DELETE CASCADE
         delete_query = "DELETE FROM users WHERE name = %s"
         cursor.execute(delete_query, (user_name,))
         connection.commit()
