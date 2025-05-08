@@ -261,6 +261,15 @@
             }
         }
 
+        .quantity-badge {
+            background-color: #f0f0f0;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 0.85rem;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+
         @media (max-width: 768px) {
             .drink-item {
                 width: calc(50% - 10px);
@@ -308,18 +317,12 @@
                     <thead>
                         <tr>
                             <th>Drink</th>
-                            <th>Price</th>
-                            <th>Date</th>
+                            <th>Prijs per stuk</th>
+                            <th>Totaal</th>
                         </tr>
                     </thead>
                     <tbody id="drinksTableBody">
-                        {% for drink in user_drinks %}
-                        <tr>
-                            <td>{{ drink.drink_name }}</td>
-                            <td>€{{ drink.drink_price }}</td>
-                            <td>{{ drink.added_on }}</td>
-                        </tr>
-                        {% endfor %}
+                        <!-- Grouped drinks will be loaded here by JavaScript -->
                     </tbody>
                 </table>
                 <div class="total-section">
@@ -332,8 +335,8 @@
                     <thead>
                         <tr>
                             <th>Drink</th>
-                            <th>Price</th>
-                            <th>Date</th>
+                            <th>Prijs per stuk</th>
+                            <th>Totaal</th>
                         </tr>
                     </thead>
                     <tbody id="drinksTableBody">
@@ -556,8 +559,29 @@
         const userName = "{{ user_name }}";
         const cardUID = "{{ card_uid }}";
         let totalSpent = {{ total_spent|default (0) }};
+        let userDrinks = [];
+        
+        {% if user_drinks %}
+        // Initialize the user drinks from the passed data
+        userDrinks = [
+            {% for drink in user_drinks %}
+            {
+                id: {{ drink.id }},
+                drink_name: "{{ drink.drink_name }}",
+                drink_price: {{ drink.drink_price }},
+                added_on: "{{ drink.added_on }}"
+            },
+            {% endfor %}
+        ];
+        {% endif %}
 
+        // Group the drinks on page load
         $(document).ready(function () {
+            // Group and display drinks
+            if (userDrinks.length > 0) {
+                groupAndDisplayDrinks();
+            }
+            
             // Direct add on drink item click
             $('.drink-item').click(function () {
                 const $this = $(this);
@@ -580,6 +604,47 @@
                 window.location.href = '/welcome';
             });
         });
+
+        function groupAndDisplayDrinks() {
+            // Create a map to group drinks by name and price
+            const drinkMap = new Map();
+            
+            userDrinks.forEach(drink => {
+                const key = `${drink.drink_name}-${drink.drink_price}`;
+                
+                if (!drinkMap.has(key)) {
+                    drinkMap.set(key, {
+                        drink_name: drink.drink_name,
+                        drink_price: drink.drink_price,
+                        count: 1,
+                        totalPrice: parseFloat(drink.drink_price)
+                    });
+                } else {
+                    const group = drinkMap.get(key);
+                    group.count++;
+                    group.totalPrice += parseFloat(drink.drink_price);
+                }
+            });
+            
+            // Convert map to array and sort by drink name
+            const groupedDrinks = Array.from(drinkMap.values());
+            groupedDrinks.sort((a, b) => a.drink_name.localeCompare(b.drink_name));
+            
+            // Clear and update the table
+            const $drinksTableBody = $('#drinksTableBody');
+            $drinksTableBody.empty();
+            
+            groupedDrinks.forEach(group => {
+                const row = `
+                    <tr>
+                        <td><span class="quantity-badge">${group.count}x</span>${group.drink_name}</td>
+                        <td>€${parseFloat(group.drink_price).toFixed(2)}</td>
+                        <td>€${group.totalPrice.toFixed(2)}</td>
+                    </tr>
+                `;
+                $drinksTableBody.append(row);
+            });
+        }
 
         function addDrinkToUser(drinkName, drinkPrice, $element) {
             // Add loader to the drink item
@@ -604,8 +669,29 @@
                         // Show success toast
                         showToast(response.message);
 
-                        // Add the drink to the table directly without reloading
-                        addDrinkToTable(drinkName, drinkPrice);
+                        // Add the drink to our local drinks array
+                        const now = new Date();
+                        const formattedDate = now.toISOString().replace('T', ' ').substring(0, 19);
+                        
+                        // Generate a temporary ID (negative to avoid conflicts)
+                        const tempId = -1 * (userDrinks.length + 1);
+                        
+                        userDrinks.push({
+                            id: tempId,
+                            drink_name: drinkName,
+                            drink_price: drinkPrice,
+                            added_on: formattedDate
+                        });
+
+                        // Hide "no drinks" message if present
+                        $('#noDrinksMessage').hide();
+
+                        // Make sure table is visible
+                        $('table').show();
+                        $('.total-section').show();
+
+                        // Re-group and display the drinks
+                        groupAndDisplayDrinks();
 
                         // Update total
                         updateTotal(parseFloat(drinkPrice));
@@ -619,29 +705,6 @@
                     showToast("Error: " + error, true);
                 }
             });
-        }
-
-        function addDrinkToTable(drinkName, drinkPrice) {
-            const now = new Date();
-            const formattedDate = now.toISOString().replace('T', ' ').substring(0, 19);
-
-            // Hide "no drinks" message if present
-            $('#noDrinksMessage').hide();
-
-            // Make sure table is visible
-            $('table').show();
-            $('.total-section').show();
-
-            // Add new row to table
-            const newRow = `
-                <tr>
-                    <td>${drinkName}</td>
-                    <td>€${drinkPrice}</td>
-                    <td>${formattedDate}</td>
-                </tr>
-            `;
-
-            $('#drinksTableBody').prepend(newRow);
         }
 
         function updateTotal(amount) {

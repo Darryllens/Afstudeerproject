@@ -283,6 +283,15 @@
             margin-top: 20px;
         }
 
+        .quantity-badge {
+            background-color: #f0f0f0;
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 0.85rem;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 10px;
@@ -341,8 +350,8 @@
                     <thead>
                         <tr>
                             <th>Drink</th>
-                            <th>Prijs</th>
-                            <th>Datum</th>
+                            <th>Prijs per stuk</th>
+                            <th>Totaal</th>
                             <th>Actie</th>
                         </tr>
                     </thead>
@@ -371,6 +380,7 @@
         let selectedUser = '';
         let currentDrinks = [];
         let currentTotal = 0;
+        let groupedDrinks = [];
         
         $(document).ready(function() {
             // Load user data when selecting a user
@@ -447,6 +457,9 @@
                         // Store current drinks
                         currentDrinks = data.drinks;
                         
+                        // Group drinks by name and price
+                        groupDrinks();
+                        
                         // Update drinks list
                         updateDrinksList();
                         
@@ -460,6 +473,38 @@
                     console.error('Error loading user drinks:', error);
                     showToast("Fout bij het laden van gebruikersgegevens", true);
                 });
+        }
+        
+        function groupDrinks() {
+            // Reset grouped drinks
+            groupedDrinks = [];
+            
+            // Create a map to group drinks by name and price
+            const drinkMap = new Map();
+            
+            currentDrinks.forEach(drink => {
+                const key = `${drink.drink_name}-${drink.drink_price}`;
+                
+                if (!drinkMap.has(key)) {
+                    drinkMap.set(key, {
+                        drink_name: drink.drink_name,
+                        drink_price: drink.drink_price,
+                        count: 1,
+                        ids: [drink.id],
+                        first_added: drink.added_on
+                    });
+                } else {
+                    const group = drinkMap.get(key);
+                    group.count++;
+                    group.ids.push(drink.id);
+                }
+            });
+            
+            // Convert map to array
+            groupedDrinks = Array.from(drinkMap.values());
+            
+            // Sort by drink name
+            groupedDrinks.sort((a, b) => a.drink_name.localeCompare(b.drink_name));
         }
         
         function updateDrinksList() {
@@ -477,13 +522,18 @@
             $('table').show();
             $('.total-section').show();
             
-            currentDrinks.forEach(drink => {
+            groupedDrinks.forEach(group => {
+                const totalPrice = (parseFloat(group.drink_price) * group.count).toFixed(2);
                 const row = `
-                    <tr data-id="${drink.id}">
-                        <td>${drink.drink_name}</td>
-                        <td>€${drink.drink_price}</td>
-                        <td>${drink.added_on}</td>
-                        <td><button class="delete-button" onclick="deleteDrink(${drink.id})">Verwijderen</button></td>
+                    <tr data-group="${group.drink_name}">
+                        <td><span class="quantity-badge">${group.count}x</span>${group.drink_name}</td>
+                        <td>€${parseFloat(group.drink_price).toFixed(2)}</td>
+                        <td>€${totalPrice}</td>
+                        <td>
+                            <button class="delete-button" onclick="deleteGroup('${group.drink_name}', ${group.drink_price})">
+                                Verwijderen
+                            </button>
+                        </td>
                     </tr>
                 `;
                 $drinksList.append(row);
@@ -493,6 +543,81 @@
         function calculateTotal() {
             currentTotal = currentDrinks.reduce((total, drink) => total + parseFloat(drink.drink_price), 0);
             $('#totalAmount').text(`€${currentTotal.toFixed(2)}`);
+        }
+        
+        function deleteGroup(drinkName, drinkPrice) {
+            // Find the group
+            const group = groupedDrinks.find(g => g.drink_name === drinkName && parseFloat(g.drink_price) === parseFloat(drinkPrice));
+            if (!group) return;
+            
+            showConfirmation(
+                `Weet je zeker dat je alle ${group.count} "${group.drink_name}" wilt verwijderen?`,
+                function() {
+                    // Delete drinks one by one
+                    deleteGroupDrinks(group);
+                }
+            );
+        }
+        
+        function deleteGroupDrinks(group) {
+            // Create a copy of the IDs array
+            const idsToDelete = [...group.ids];
+            let deleteCount = 0;
+            let errorCount = 0;
+            
+            // Show initial toast
+            showToast(`Bezig met verwijderen van ${group.count} drankjes...`);
+            
+            // Function to delete a single drink
+            function deleteSingleDrink(index) {
+                if (index >= idsToDelete.length) {
+                    // All deletion attempts completed
+                    if (errorCount === 0) {
+                        showToast(`${deleteCount} drankjes verwijderd`);
+                    } else {
+                        showToast(`${deleteCount} drankjes verwijderd, ${errorCount} fouten`, true);
+                    }
+                    
+                    // Reload user drinks
+                    loadUserDrinks(selectedUser);
+                    return;
+                }
+                
+                const drinkId = idsToDelete[index];
+                
+                fetch('/delete_drink', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_name: selectedUser,
+                        drink_id: drinkId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        deleteCount++;
+                    } else {
+                        errorCount++;
+                        console.error('Error deleting drink:', data.error);
+                    }
+                    
+                    // Delete next drink
+                    deleteSingleDrink(index + 1);
+                })
+                .catch(error => {
+                    errorCount++;
+                    console.error('Error deleting drink:', error);
+                    
+                    // Delete next drink
+                    deleteSingleDrink(index + 1);
+                });
+            }
+            
+            // Start deletion process
+            deleteSingleDrink(0);
         }
         
         function deleteDrink(drinkId) {
@@ -524,6 +649,9 @@
                     // Remove drink from local list
                     currentDrinks = currentDrinks.filter(d => d.id !== drinkId);
                     
+                    // Regroup drinks
+                    groupDrinks();
+                    
                     // Update UI
                     updateDrinksList();
                     calculateTotal();
@@ -554,6 +682,7 @@
                 if (data.success) {
                     // Clear local drinks list
                     currentDrinks = [];
+                    groupedDrinks = [];
                     
                     // Update UI
                     updateDrinksList();
