@@ -3,7 +3,9 @@ import mysql.connector
 from mysql.connector import Error
 import time
 import json
+import os
 from decimal import Decimal
+from functools import wraps  # Toegevoegd voor decorators
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -12,21 +14,40 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(obj)
 
 app = Flask(__name__)
-app.secret_key = 'patrohoevenensecretkey'  # Add a secret key for sessions
-app.json_encoder = DecimalEncoder  # Use the custom JSON encoder
+# Verbeterde beveiliging: random secret key genereren of uit env variabele halen
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
+app.json_encoder = DecimalEncoder
+
+# Decorators voor routebeveiliging
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_name' not in session:
+            return redirect(url_for('welcome'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'kassa_user' not in session:
+            return redirect(url_for('welcome'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Globale variabelen voor de laatst gescande kaart en redirects
 last_scanned_uid = None
 last_scan_time = 0
 
-# Database connection function to ensure fresh connections
+# Database connection function with improved security
 def get_db_connection():
     try:
+        # Verbeterde beveiliging: database credentials uit env variabelen halen
         connection = mysql.connector.connect(
-            host='localhost',
-            user='Darryll',
-            password='Darryllens12',
-            database='PatroHoevenen'
+            host=os.environ.get('DB_HOST', 'localhost'),
+            user=os.environ.get('DB_USER', 'Darryll'),
+            password=os.environ.get('DB_PASSWORD', 'Darryllens12'),
+            database=os.environ.get('DB_NAME', 'PatroHoevenen')
         )
         return connection
     except Error as e:
@@ -68,6 +89,7 @@ def index():
     return render_template("index.html")
 
 @app.route("/user/<user_name>")
+@login_required  # Deze route heeft nu gebruikersauthenticatie
 def user_index(user_name):
     try:
         # Get a fresh database connection
@@ -87,6 +109,10 @@ def user_index(user_name):
             session.clear()
             return redirect(url_for('welcome'))
         
+        # Controleer of de ingelogde gebruiker toegang heeft tot deze pagina
+        if session.get('user_name') != user_name and 'kassa_user' not in session:
+            return redirect(url_for('welcome'))
+            
         # Get user's drinks from their table
         safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
         
@@ -122,11 +148,8 @@ def user_index(user_name):
         return redirect(url_for('welcome'))
 
 @app.route("/summary")
+@admin_required  # Deze route vereist nu admin-rechten
 def summary():
-    # Check if user is authenticated as admin
-    if 'kassa_user' not in session:
-        return redirect(url_for('welcome'))
-    
     try:
         # Get a fresh database connection
         connection = get_db_connection()
@@ -410,6 +433,7 @@ def register_user():
 
 # Route to add a drink to a user's table
 @app.route("/add_user_drink", methods=["POST"])
+@admin_required  # Deze route vereist nu admin-rechten
 def add_user_drink():
     try:
         data = request.get_json()
@@ -478,11 +502,8 @@ def add_user_drink():
         })
 
 @app.route("/get_user_drinks")
+@admin_required  # Deze route vereist nu admin-rechten
 def get_user_drinks():
-    # Check if user is authenticated as admin
-    if 'kassa_user' not in session:
-        return jsonify({"success": False, "error": "Niet geautoriseerd"})
-    
     user_name = request.args.get('user_name')
     if not user_name:
         return jsonify({"success": False, "error": "Geen gebruikersnaam opgegeven"})
@@ -521,11 +542,8 @@ def get_user_drinks():
         return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
 
 @app.route("/delete_drink", methods=["POST"])
+@admin_required  # Deze route vereist nu admin-rechten
 def delete_drink():
-    # Check if user is authenticated as admin
-    if 'kassa_user' not in session:
-        return jsonify({"success": False, "error": "Niet geautoriseerd"})
-    
     data = request.get_json()
     
     if not data or not all(key in data for key in ['user_name', 'drink_id']):
@@ -562,11 +580,8 @@ def delete_drink():
         return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
 
 @app.route("/clear_user_drinks", methods=["POST"])
+@admin_required  # Deze route vereist nu admin-rechten
 def clear_user_drinks():
-    # Check if user is authenticated as admin
-    if 'kassa_user' not in session:
-        return jsonify({"success": False, "error": "Niet geautoriseerd"})
-    
     data = request.get_json()
     
     if not data or 'user_name' not in data:
@@ -602,11 +617,8 @@ def clear_user_drinks():
         return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
 
 @app.route("/delete_user", methods=["POST"])
+@admin_required  # Deze route vereist nu admin-rechten
 def delete_user():
-    # Check if user is authenticated as admin
-    if 'kassa_user' not in session:
-        return jsonify({"success": False, "error": "Niet geautoriseerd"})
-    
     data = request.get_json()
     
     if not data or 'user_name' not in data:
@@ -663,5 +675,23 @@ def delete_user():
         print(f"Database error: {e}")
         return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
 
+# Sessie-bescherming: instellen sessie timeout
+@app.before_request
+def session_timeout():
+    session.permanent = True
+    app.permanent_session_lifetime = 3600  # 1 uur sessie timeout
+
+# Route voor logout
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for('welcome'))
+
+# 404 error handler
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # In productie zet je debug op False
+    app.run(host='0.0.0.0', port=5000, debug=False)
