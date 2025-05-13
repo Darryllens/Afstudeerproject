@@ -433,7 +433,6 @@ def register_user():
 
 # Route to add a drink to a user's table
 @app.route("/add_user_drink", methods=["POST"])
-@admin_required  # Deze route vereist nu admin-rechten
 def add_user_drink():
     try:
         data = request.get_json()
