@@ -357,7 +357,7 @@
             </div>
 
             <div id="drinkList" class="drink-list">
-                <!-- Drinks will be loaded dynamically from the database -->
+                <!-- Drankjes worden dynamisch geladen uit de database -->
                 <div id="drinksLoadingMessage">Drankjes laden...</div>
             </div>
 
@@ -370,7 +370,7 @@
     <script>
         const userName = "{{ user_name }}";
         const cardUID = "{{ card_uid }}";
-        let totalSpent = {{ total_spent|default (0) }};
+        let totalSpent = {{ total_spent|default(0) }};
         let userDrinks = [];
         
         {% if user_drinks %}
@@ -516,15 +516,16 @@
                 const $this = $(this);
                 const drinkName = $this.data('name');
                 const drinkPrice = $this.data('price');
+                const drinkId = $this.data('id');
 
                 // Visual feedback
                 $this.addClass('adding');
 
-                addDrinkToUser(drinkName, drinkPrice, $this);
+                addDrinkToUser(drinkName, drinkPrice, $this, drinkId);
             });
         }
 
-        function addDrinkToUser(drinkName, drinkPrice, $element) {
+        function addDrinkToUser(drinkName, drinkPrice, $element, drinkId) {
             // Add loader to the drink item
             const $loader = $('<div class="loader"></div>');
             $element.append($loader);
@@ -537,7 +538,8 @@
                 data: JSON.stringify({
                     user_name: userName,
                     drink_name: drinkName,
-                    drink_price: drinkPrice
+                    drink_price: drinkPrice,
+                    drink_id: drinkId  // Stuur de drink_id mee
                 }),
                 success: function (response) {
                     $loader.hide();

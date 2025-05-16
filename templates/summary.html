@@ -620,53 +620,6 @@
             deleteSingleDrink(0);
         }
         
-        function deleteDrink(drinkId) {
-            const drink = currentDrinks.find(d => d.id === drinkId);
-            if (!drink) return;
-            
-            showConfirmation(
-                `Weet je zeker dat je "${drink.drink_name}" wilt verwijderen?`,
-                function() {
-                    performDeleteDrink(drinkId);
-                }
-            );
-        }
-        
-        function performDeleteDrink(drinkId) {
-            fetch('/delete_drink', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    user_name: selectedUser,
-                    drink_id: drinkId
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Remove drink from local list
-                    currentDrinks = currentDrinks.filter(d => d.id !== drinkId);
-                    
-                    // Regroup drinks
-                    groupDrinks();
-                    
-                    // Update UI
-                    updateDrinksList();
-                    calculateTotal();
-                    
-                    showToast("Drankje verwijderd");
-                } else {
-                    showToast(`Fout: ${data.error}`, true);
-                }
-            })
-            .catch(error => {
-                console.error('Error deleting drink:', error);
-                showToast("Fout bij het verwijderen van drankje", true);
-            });
-        }
-        
         function clearAllDrinks(userName) {
             fetch('/clear_user_drinks', {
                 method: 'POST',
