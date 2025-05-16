@@ -674,6 +674,33 @@ def delete_user():
         print(f"Database error: {e}")
         return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
 
+# Voeg deze route toe om drankjes op te halen
+@app.route("/get_drinks")
+def get_drinks():
+    try:
+        # Get a fresh database connection
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({"success": False, "error": "Database verbindingsfout"})
+            
+        cursor = connection.cursor(dictionary=True)
+        
+        # Haal alle drankjes op uit de Dranken tabel, gesorteerd op categorie
+        query = "SELECT * FROM Dranken ORDER BY categorie, Naam"
+        cursor.execute(query)
+        drinks = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return jsonify({
+            "success": True,
+            "drinks": drinks
+        })
+    except Exception as e:
+        print(f"Error fetching drinks: {e}")
+        return jsonify({"success": False, "error": f"Fout bij ophalen drankjes: {str(e)}"})
+
 # Sessie-bescherming: instellen sessie timeout
 @app.before_request
 def session_timeout():
