@@ -270,6 +270,33 @@
             font-weight: bold;
         }
 
+        /* Toevoegen: Categorie filter */
+        .category-filter {
+            display: flex;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .category-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 5px 15px;
+            margin-right: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active {
+            background-color: #0800ff;
+            color: white;
+            border-color: #0800ff;
+        }
+
         @media (max-width: 768px) {
             .drink-item {
                 width: calc(50% - 10px);
@@ -356,6 +383,15 @@
                 <button id="refreshDrinks" class="button">Refresh</button>
             </div>
 
+            <!-- Toevoegen: Categorie filter buttons -->
+            <div class="category-filter" id="categoryFilter">
+                <button class="category-btn active" data-category="all">Alle</button>
+                <button class="category-btn" data-category="alcoholisch">Alcoholisch</button>
+                <button class="category-btn" data-category="frisdrank">Frisdrank</button>
+                <button class="category-btn" data-category="warme-dranken">Warme dranken</button>
+                <button class="category-btn" data-category="snacks">Snacks</button>
+            </div>
+
             <div id="drinkList" class="drink-list">
                 <!-- Drankjes worden dynamisch geladen uit de database -->
                 <div id="drinksLoadingMessage">Drankjes laden...</div>
@@ -372,6 +408,64 @@
         const cardUID = "{{ card_uid }}";
         let totalSpent = {{ total_spent|default(0) }};
         let userDrinks = [];
+        let allDrinks = []; // Om alle drankjes op te slaan voor filtering
+        let currentDisplayCategory = 'all'; // Standaard categorie is 'alle'
+        
+        // Mapping van database categorieën naar gewenste weergavecategorieën
+        const categoryMapping = {
+            // Voorbeeldmapping - pas deze aan op basis van je database categorieën
+            'Bier': 'alcoholisch',
+            'Wijn': 'alcoholisch',
+            'Sterke drank': 'alcoholisch',
+            'Cocktails': 'alcoholisch',
+            'Cola': 'frisdrank',
+            'Fanta': 'frisdrank',
+            'Water': 'frisdrank',
+            'Limonade': 'frisdrank',
+            'Thee': 'warme-dranken',
+            'Koffie': 'warme-dranken',
+            'Chocolademelk': 'warme-dranken',
+            'Chips': 'snacks',
+            'Nootjes': 'snacks',
+            'Snoep': 'snacks'
+            // Voeg meer categorieën toe op basis van je database
+        };
+        
+        // Functie om database categorie naar weergavecategorie te vertalen
+        function mapCategory(dbCategory) {
+            // Als de categorie in onze mapping voorkomt, gebruik die
+            if (categoryMapping[dbCategory]) {
+                return categoryMapping[dbCategory];
+            }
+            
+            // Fallback logica - kijk of de naam van de categorie een keyword bevat
+            const lowerCategory = dbCategory.toLowerCase();
+            
+            if (lowerCategory.includes('bier') || lowerCategory.includes('wijn') || 
+                lowerCategory.includes('alcohol') || lowerCategory.includes('sterke') ||
+                lowerCategory.includes('jenever') || lowerCategory.includes('whisky')) {
+                return 'alcoholisch';
+            }
+            
+            if (lowerCategory.includes('cola') || lowerCategory.includes('fanta') || 
+                lowerCategory.includes('water') || lowerCategory.includes('frisdrank') ||
+                lowerCategory.includes('sap') || lowerCategory.includes('fris')) {
+                return 'frisdrank';
+            }
+            
+            if (lowerCategory.includes('koffie') || lowerCategory.includes('thee') || 
+                lowerCategory.includes('chocola') || lowerCategory.includes('warm')) {
+                return 'warme-dranken';
+            }
+            
+            if (lowerCategory.includes('chips') || lowerCategory.includes('snack') || 
+                lowerCategory.includes('noot') || lowerCategory.includes('eten')) {
+                return 'snacks';
+            }
+            
+            // Als geen match gevonden, gebruik de oorspronkelijke categorie
+            return 'overig';
+        }
         
         {% if user_drinks %}
         // Initialize the user drinks from the passed data
@@ -387,7 +481,7 @@
         ];
         {% endif %}
 
-        // Group the drinks on page load
+        // Document ready handler
         $(document).ready(function () {
             // Group and display drinks
             if (userDrinks.length > 0) {
@@ -397,18 +491,31 @@
             // Load available drinks from the database
             loadAvailableDrinks();
             
-            // Refresh drinks button
+            // Refresh button: Reload both available drinks and user's drinks
             $('#refreshDrinks').click(function () {
                 loadAvailableDrinks();
-                showToast("Drink list refreshed");
+                loadUserDrinks(); // Refresh user's drink history
+                showToast("Drink lists refreshed");
             });
 
             // Back to welcome button
             $('#backToWelcome').click(function () {
                 window.location.href = '/welcome';
             });
+            
+            // Categorie filter knoppen
+            $('.category-btn').click(function() {
+                $('.category-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                const category = $(this).data('category');
+                currentDisplayCategory = category;
+                
+                filterDrinksByCategory(category);
+            });
         });
 
+        // Group drinks by name and price for display
         function groupAndDisplayDrinks() {
             // Create a map to group drinks by name and price
             const drinkMap = new Map();
@@ -450,6 +557,42 @@
             });
         }
 
+        // Load user drinks from the server
+        function loadUserDrinks() {
+            $.ajax({
+                url: '/get_user_drinks',
+                type: 'GET',
+                data: { user_name: userName },
+                success: function(response) {
+                    if (response.success) {
+                        userDrinks = response.drinks;
+                        
+                        // Update the display
+                        if (userDrinks.length > 0) {
+                            $('#noDrinksMessage').hide();
+                            $('table').show();
+                            $('.total-section').show();
+                            groupAndDisplayDrinks();
+                            
+                            // Recalculate total
+                            totalSpent = userDrinks.reduce((sum, drink) => sum + parseFloat(drink.drink_price), 0);
+                            $('#totalAmount').text(`€${totalSpent.toFixed(2)}`);
+                        } else {
+                            $('#noDrinksMessage').show();
+                            $('table').hide();
+                            $('.total-section').hide();
+                        }
+                    } else {
+                        showToast("Error loading drinks: " + response.error, true);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showToast("Error: " + error, true);
+                }
+            });
+        }
+
+        // Load available drinks from the database
         function loadAvailableDrinks() {
             // Show loading message
             $('#drinkList').html('<div id="drinksLoadingMessage">Drankjes laden...</div>');
@@ -460,6 +603,7 @@
                 type: 'GET',
                 success: function(response) {
                     if (response.success) {
+                        allDrinks = response.drinks; // Sla alle drankjes op voor latere filtering
                         displayAvailableDrinks(response.drinks);
                     } else {
                         $('#drinkList').html(`<div class="error-message">Error: ${response.error}</div>`);
@@ -471,6 +615,7 @@
             });
         }
 
+        // Display available drinks and group by category
         function displayAvailableDrinks(drinks) {
             const $drinkList = $('#drinkList');
             $drinkList.empty();
@@ -479,6 +624,12 @@
             const categories = {};
             
             drinks.forEach(drink => {
+                // Vertaal categorie uit database naar onze gewenste categorieën
+                const mappedCategory = mapCategory(drink.categorie);
+                
+                // Sla de gemapte categorie op bij de drink voor latere filtering
+                drink.mappedCategory = mappedCategory;
+                
                 if (!categories[drink.categorie]) {
                     categories[drink.categorie] = [];
                 }
@@ -496,8 +647,10 @@
                 // Add drinks
                 categories[category].forEach(drink => {
                     const formattedPrice = parseFloat(drink.prijs).toFixed(2).replace('.', ',');
+                    const mappedCategory = drink.mappedCategory || mapCategory(drink.categorie);
+                    
                     const drinkItem = `
-                        <div class="drink-item" data-name="${drink.Naam}" data-price="${drink.prijs}" data-id="${drink.ID}">
+                        <div class="drink-item" data-name="${drink.Naam}" data-price="${drink.prijs}" data-id="${drink.ID}" data-category="${mappedCategory}">
                             <div class="drink-name">${drink.Naam}</div>
                             <div class="drink-price">€${formattedPrice}</div>
                         </div>
@@ -509,6 +662,11 @@
             // If no drinks found
             if (Object.keys(categories).length === 0) {
                 $drinkList.html('<div>Geen drankjes gevonden. Voeg drankjes toe in de database.</div>');
+            }
+            
+            // Als er een actieve categorie is, pas dan de filtering toe
+            if (currentDisplayCategory !== 'all') {
+                filterDrinksByCategory(currentDisplayCategory);
             }
             
             // Attach click event to newly added drink items
@@ -524,7 +682,37 @@
                 addDrinkToUser(drinkName, drinkPrice, $this, drinkId);
             });
         }
+        
+        // Filter drinks by category
+        function filterDrinksByCategory(category) {
+            if (category === 'all') {
+                // Toon alle drankjes
+                $('.drink-item').show();
+                $('.category-title').show();
+            } else {
+                // Verberg eerst alles
+                $('.drink-item').hide();
+                $('.category-title').hide();
+                
+                // Toon alleen drankjes van de geselecteerde categorie
+                $(`.drink-item[data-category="${category}"]`).show();
+                
+                // Toon alleen categorieën die zichtbare drankjes hebben
+                $('.category-title').each(function() {
+                    const $title = $(this);
+                    const $nextItems = $title.nextUntil('.category-title');
+                    
+                    // Check of er zichtbare drankjes zijn in deze categorie
+                    const hasVisibleDrinks = $nextItems.filter(':visible').length > 0;
+                    
+                    if (hasVisibleDrinks) {
+                        $title.show();
+                    }
+                });
+            }
+        }
 
+        // Add a drink to the user's account
         function addDrinkToUser(drinkName, drinkPrice, $element, drinkId) {
             // Add loader to the drink item
             const $loader = $('<div class="loader"></div>');
@@ -548,33 +736,9 @@
                     if (response.success) {
                         // Show success toast
                         showToast(response.message);
-
-                        // Add the drink to our local drinks array
-                        const now = new Date();
-                        const formattedDate = now.toISOString().replace('T', ' ').substring(0, 19);
                         
-                        // Generate a temporary ID (negative to avoid conflicts)
-                        const tempId = -1 * (userDrinks.length + 1);
-                        
-                        userDrinks.push({
-                            id: tempId,
-                            drink_name: drinkName,
-                            drink_price: drinkPrice,
-                            added_on: formattedDate
-                        });
-
-                        // Hide "no drinks" message if present
-                        $('#noDrinksMessage').hide();
-
-                        // Make sure table is visible
-                        $('table').show();
-                        $('.total-section').show();
-
-                        // Re-group and display the drinks
-                        groupAndDisplayDrinks();
-
-                        // Update total
-                        updateTotal(parseFloat(drinkPrice));
+                        // Refresh user drinks from the server to get the complete list
+                        loadUserDrinks();
                     } else {
                         showToast("Error: " + response.error, true);
                     }
@@ -587,11 +751,13 @@
             });
         }
 
+        // Update the total displayed
         function updateTotal(amount) {
             totalSpent += amount;
             $('#totalAmount').text(`€${totalSpent.toFixed(2)}`);
         }
 
+        // Show a toast notification
         function showToast(message, isError = false) {
             const toastContainer = $('#toastContainer');
             const toast = $('<div class="toast"></div>');

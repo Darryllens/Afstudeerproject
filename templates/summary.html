@@ -6,6 +6,7 @@
     <title>Admin Summary - Patro Hoevenen</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -142,6 +143,7 @@
             padding-top: 10px;
             border-top: 1px solid #eee;
             font-weight: 600;
+            align-items: center;
         }
 
         .buttons {
@@ -235,11 +237,30 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .delete-button:hover {
             text-decoration: underline;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .delete-single-button {
+            color: #dc3545;
+            background: #fff;
+            border: 1px solid #dc3545;
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 2px 5px;
+            font-size: 0.8rem;
+        }
+        
+        .delete-single-button:hover {
+            background-color: #f8d7da;
         }
         
         .empty-state {
@@ -292,6 +313,42 @@
             font-weight: bold;
         }
 
+        #qrCodeContainer img {
+            margin: 0 auto;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        #payButton {
+            margin-left: 20px;
+        }
+
+        #paymentDetails {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            line-height: 1.5;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #qrCodeModal, #qrCodeModal * {
+                visibility: visible;
+            }
+            #qrCodeModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            #closeQrButton, #markAsPaidButton {
+                display: none;
+            }
+        }
+
         @media (max-width: 768px) {
             .main-container {
                 padding: 10px;
@@ -299,6 +356,15 @@
 
             .header h1 {
                 font-size: 1.5rem;
+            }
+            
+            .total-section {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            #payButton {
+                margin-left: 0;
             }
         }
     </style>
@@ -322,6 +388,19 @@
             <div class="modal-buttons">
                 <button id="cancelButton" class="button secondary">Annuleren</button>
                 <button id="confirmButton" class="button danger">Verwijderen</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="confirmation-modal" id="qrCodeModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Betaaloverzicht</h3>
+            <p id="qrCodeText">Dit is een overzicht van de rekening (dummy QR-code, geen echte betaling):</p>
+            <div id="qrCodeContainer" style="text-align: center; margin: 20px 0;"></div>
+            <div id="paymentDetails" style="margin-bottom: 20px; text-align: center;"></div>
+            <div class="modal-buttons">
+                <button id="closeQrButton" class="button secondary">Sluiten</button>
+                <button id="markAsPaidButton" class="button">Bevestig Afrekening</button>
             </div>
         </div>
     </div>
@@ -362,6 +441,7 @@
                 <div class="total-section">
                     <span>Totaal</span>
                     <span id="totalAmount">€0.00</span>
+                    <button id="payButton" class="button">Rekening Afsluiten</button>
                 </div>
                 
                 <div class="empty-state" id="noDrinksMessage">
@@ -437,6 +517,36 @@
             // Set up modal cancel button
             $('#cancelButton').click(function() {
                 hideConfirmation();
+            });
+            
+            // Handle payment button
+            $('#payButton').click(function() {
+                if (!selectedUser || currentDrinks.length === 0) {
+                    showToast("Er zijn geen drankjes om af te rekenen", true);
+                    return;
+                }
+                
+                showPaymentQR(selectedUser, currentTotal);
+            });
+
+            // Close QR code modal
+            $('#closeQrButton').click(function() {
+                $('#qrCodeModal').hide();
+            });
+
+            // Mark as paid button
+            $('#markAsPaidButton').click(function() {
+                if (!selectedUser) return;
+                
+                // Show confirmation before clearing drinks
+                showConfirmation(
+                    `Wil je bevestigen dat ${selectedUser} heeft afgerekend voor €${currentTotal.toFixed(2)}?`,
+                    function() {
+                        clearAllDrinks(selectedUser);
+                        $('#qrCodeModal').hide();
+                        showToast(`Afrekening voor ${selectedUser} is verwerkt`);
+                    }
+                );
             });
             
             // Start polling for NFC scans
@@ -530,9 +640,14 @@
                         <td>€${parseFloat(group.drink_price).toFixed(2)}</td>
                         <td>€${totalPrice}</td>
                         <td>
-                            <button class="delete-button" onclick="deleteGroup('${group.drink_name}', ${group.drink_price})">
-                                Verwijderen
-                            </button>
+                            <div class="action-buttons">
+                                <button class="delete-single-button" onclick="deleteSingleDrink('${group.drink_name}', ${group.drink_price})">
+                                    -1
+                                </button>
+                                <button class="delete-button" onclick="deleteGroup('${group.drink_name}', ${group.drink_price})">
+                                    Alles
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -569,7 +684,7 @@
             showToast(`Bezig met verwijderen van ${group.count} drankjes...`);
             
             // Function to delete a single drink
-            function deleteSingleDrink(index) {
+            function deleteOneDrink(index) {
                 if (index >= idsToDelete.length) {
                     // All deletion attempts completed
                     if (errorCount === 0) {
@@ -605,19 +720,121 @@
                     }
                     
                     // Delete next drink
-                    deleteSingleDrink(index + 1);
+                    deleteOneDrink(index + 1);
                 })
                 .catch(error => {
                     errorCount++;
                     console.error('Error deleting drink:', error);
                     
                     // Delete next drink
-                    deleteSingleDrink(index + 1);
+                    deleteOneDrink(index + 1);
                 });
             }
             
             // Start deletion process
-            deleteSingleDrink(0);
+            deleteOneDrink(0);
+        }
+        
+        function deleteSingleDrink(drinkName, drinkPrice) {
+            // Find the group
+            const group = groupedDrinks.find(g => g.drink_name === drinkName && parseFloat(g.drink_price) === parseFloat(drinkPrice));
+            if (!group || group.ids.length === 0) return;
+            
+            // Get just the most recent drink ID (last added)
+            const drinkId = group.ids[0];
+            
+            // Show confirmation
+            showConfirmation(
+                `Wil je 1 "${drinkName}" verwijderen?`,
+                function() {
+                    // Delete single drink
+                    fetch('/delete_drink', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            user_name: selectedUser,
+                            drink_id: drinkId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast(`1 ${drinkName} verwijderd`);
+                            // Reload user drinks
+                            loadUserDrinks(selectedUser);
+                        } else {
+                            showToast(`Fout: ${data.error}`, true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting drink:', error);
+                        showToast("Fout bij het verwijderen van drankje", true);
+                    });
+                }
+            );
+        }
+        
+                                function deleteGroupDrinks(group) {
+            // Create a copy of the IDs array
+            const idsToDelete = [...group.ids];
+            let deleteCount = 0;
+            let errorCount = 0;
+            
+            // Show initial toast
+            showToast(`Bezig met verwijderen van ${group.count} drankjes...`);
+            
+            // Function to delete a single drink
+            function deleteOneDrink(index) {
+                if (index >= idsToDelete.length) {
+                    // All deletion attempts completed
+                    if (errorCount === 0) {
+                        showToast(`${deleteCount} drankjes verwijderd`);
+                    } else {
+                        showToast(`${deleteCount} drankjes verwijderd, ${errorCount} fouten`, true);
+                    }
+                    
+                    // Reload user drinks
+                    loadUserDrinks(selectedUser);
+                    return;
+                }
+                
+                const drinkId = idsToDelete[index];
+                
+                fetch('/delete_drink', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_name: selectedUser,
+                        drink_id: drinkId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        deleteCount++;
+                    } else {
+                        errorCount++;
+                        console.error('Error deleting drink:', data.error);
+                    }
+                    
+                    // Delete next drink
+                    deleteOneDrink(index + 1);
+                })
+                .catch(error => {
+                    errorCount++;
+                    console.error('Error deleting drink:', error);
+                    
+                    // Delete next drink
+                    deleteOneDrink(index + 1);
+                });
+            }
+            
+            // Start deletion process
+            deleteOneDrink(0);
         }
         
         function clearAllDrinks(userName) {
@@ -695,6 +912,44 @@
         
         function hideConfirmation() {
             $('#confirmationModal').hide();
+        }
+        
+        // Function to show payment QR code
+        function showPaymentQR(userName, amount) {
+            // Generate a QR code for payment summary (dummy - not a real payment)
+            const paymentInfo = {
+                user: userName,
+                amount: amount.toFixed(2),
+                date: new Date().toISOString(),
+                reference: 'PATRO-' + Math.floor(Math.random() * 10000),
+                note: 'Dit is een overzicht, geen betaalverzoek'
+            };
+            
+            // Generate QR code with the payment info
+            const qrText = JSON.stringify(paymentInfo);
+            
+            // Create QR code
+            const typeNumber = 0;
+            const errorCorrectionLevel = 'L';
+            const qr = qrcode(typeNumber, errorCorrectionLevel);
+            qr.addData(qrText);
+            qr.make();
+            
+            // Display QR code
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            qrCodeContainer.innerHTML = qr.createImgTag(5, 10); // Size, margin
+            
+            // Add payment info
+            const paymentDetails = document.getElementById('paymentDetails');
+            paymentDetails.innerHTML = `
+                <strong>${userName}</strong><br>
+                Totaalbedrag: €${amount.toFixed(2)}<br>
+                Referentie: ${paymentInfo.reference}<br>
+                <small style="color: #6c757d;">Deze QR code is alleen voor administratieve doeleinden</small>
+            `;
+            
+            // Show the modal
+            $('#qrCodeModal').show();
         }
         
         // Function to poll for NFC scans

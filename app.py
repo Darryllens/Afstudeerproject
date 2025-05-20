@@ -89,7 +89,7 @@ def index():
     return render_template("index.html")
 
 @app.route("/user/<user_name>")
-@login_required  # Deze route heeft nu gebruikersauthenticatie
+@login_required
 def user_index(user_name):
     try:
         # Get a fresh database connection
@@ -109,40 +109,33 @@ def user_index(user_name):
             session.clear()
             return redirect(url_for('welcome'))
         
-        # Controleer of de ingelogde gebruiker toegang heeft tot deze pagina
+        # Check if the logged-in user has access to this page
         if session.get('user_name') != user_name and session.get('user_type') != 'admin':
             return redirect(url_for('welcome'))
             
-        # Get user's drinks from their table
-        safe_table_name = ''.join(c for c in user_name if c.isalnum() or c == '_')
+        # Get user's drinks from Bestellingen table
+        drinks_query = """
+            SELECT b.ID as id, d.Naam as drink_name, d.prijs as drink_price, 
+                   b.Timestamp as added_on 
+            FROM Bestellingen b
+            JOIN Dranken d ON b.Drank_ID = d.ID
+            WHERE b.User_ID = %s
+            ORDER BY b.Timestamp DESC
+        """
+        cursor.execute(drinks_query, (user['id'],))
+        user_drinks = cursor.fetchall()
         
-        try:
-            query = f"SELECT * FROM `{safe_table_name}` ORDER BY added_on DESC"
-            cursor.execute(query)
-            user_drinks = cursor.fetchall()
-            
-            # Calculate total spent
-            total_spent = sum(float(drink['drink_price']) for drink in user_drinks) if user_drinks else 0
-            
-            cursor.close()
-            connection.close()
-            
-            return render_template("index.html", 
-                                  user_name=user_name, 
-                                  card_uid=user['card_uid'],
-                                  user_drinks=user_drinks,
-                                  total_spent=total_spent)
-        except Error as e:
-            print(f"Error retrieving user drinks: {e}")
-            cursor.close()
-            connection.close()
-            
-            # If table doesn't exist, just show empty drinks list
-            return render_template("index.html", 
-                                  user_name=user_name, 
-                                  card_uid=user['card_uid'],
-                                  user_drinks=[],
-                                  total_spent=0)
+        # Calculate total spent
+        total_spent = sum(float(drink['drink_price']) for drink in user_drinks) if user_drinks else 0
+        
+        cursor.close()
+        connection.close()
+        
+        return render_template("index.html", 
+                              user_name=user_name, 
+                              card_uid=user['card_uid'],
+                              user_drinks=user_drinks,
+                              total_spent=total_spent)
     except Error as e:
         print(f"Database error: {e}")
         return redirect(url_for('welcome'))
