@@ -1,0 +1,50 @@
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Python virtual environment
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# VS Code specifieke bestanden
+.vscode/
+*.code-workspace
+.history/
+
+# Logbestanden
+*.log
+logs/
+
+# Lokale configuratie
+instance/
+.webassets-cache
+
+# Databases
+*.sqlite
+*.db
+
+# Overige
+.DS_Store
+Thumbs.db

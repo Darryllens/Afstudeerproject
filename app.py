@@ -6,6 +6,9 @@ import json
 import os
 from decimal import Decimal
 from functools import wraps  # Toegevoegd voor decorators
+from dotenv import load_dotenv  # Toegevoegd voor .env ondersteuning
+
+load_dotenv()  # Laad .env bestand
 
 class DecimalEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -15,7 +18,7 @@ class DecimalEncoder(json.JSONEncoder):
 
 app = Flask(__name__)
 # Verbeterde beveiliging: random secret key genereren of uit env variabele halen
-app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24).hex())
+app.secret_key = os.getenv('SECRET_KEY')
 app.json_encoder = DecimalEncoder
 
 # Decorators voor routebeveiliging
@@ -42,12 +45,12 @@ last_scan_time = 0
 # Database connection function with improved security
 def get_db_connection():
     try:
-        # Verbeterde beveiliging: database credentials uit env variabelen halen
+        # Haal database credentials uit .env bestand
         connection = mysql.connector.connect(
-            host=os.environ.get('DB_HOST', 'localhost'),
-            user=os.environ.get('DB_USER', 'Darryll'),
-            password=os.environ.get('DB_PASSWORD', 'Darryllens12'),
-            database=os.environ.get('DB_NAME', 'PatroHoevenen')
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            database=os.getenv('DB_NAME')
         )
         return connection
     except Error as e:
@@ -733,5 +736,9 @@ def delete_user():
         return jsonify({"success": False, "error": f"Database fout: {str(e)}"})
     
 if __name__ == "__main__":
-    # In productie zet je debug op False
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    # Configuratie uit .env
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('DEBUG', 'False').lower() == 'true'
+    
+    app.run(host=host, port=port, debug=debug)
