@@ -19,29 +19,7 @@ flask-app
 
 ## Setup Instructions
 
-1. **Clone the Repository**
-   ```bash
-   git clone <repository-url>
-   cd flask-app
-   ```
-
-2. **Install Dependencies**
-   Make sure you have Python installed. Then, create a virtual environment and install the required packages:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   pip install -r requirements.txt
-   ```
-
-3. **Database Configuration**
-   Ensure you have a MySQL database set up. Update the database connection details in `app.py` to match your configuration.
-
-4. **Run the Application**
-   Start the Flask application:
-   ```bash
-   python app.py
-   ```
-   The application will be accessible at `http://localhost:5000`.
+You can find the instructions in the file "Dossier" in the folder "Documentatie".
 
 ## Usage
 
