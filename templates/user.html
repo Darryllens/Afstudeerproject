@@ -89,8 +89,8 @@
         }
 
         input:focus {
-            outline: none;
-            border-color: #ff9f00;
+            outline: 3px solid #ff9f00 !important;
+            border-color: #ff9f00 !important;
         }
 
         button {
@@ -133,6 +133,139 @@
             text-decoration: underline;
         }
 
+        /* Virtual Keyboard CSS */
+        .virtual-keyboard {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #333;
+            z-index: 10000;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            border-top: 2px solid #555;
+        }
+
+        .virtual-keyboard.show {
+            transform: translateY(0);
+        }
+
+        .keyboard-header {
+            background: #444;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .keyboard-title {
+            color: white;
+            font-weight: bold;
+        }
+
+        .keyboard-close {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .keyboard-close:hover {
+            background: #777;
+        }
+
+        .keyboard-container {
+            padding: 15px;
+            background: #333;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 8px;
+            gap: 5px;
+        }
+
+        .key {
+            background: #555;
+            color: white;
+            border: 1px solid #666;
+            border-radius: 5px;
+            padding: 12px;
+            min-width: 45px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.1s;
+            user-select: none;
+        }
+
+        .key:hover {
+            background: #666;
+            transform: scale(1.05);
+        }
+
+        .key:active {
+            background: #777;
+            transform: scale(0.95);
+        }
+
+        .key.space {
+            flex: 3;
+        }
+
+        .key.enter {
+            background: #4CAF50;
+            min-width: 80px;
+        }
+
+        .key.enter:hover {
+            background: #5CBF60;
+        }
+
+        .key.backspace {
+            background: #f44336;
+            min-width: 80px;
+        }
+
+        .key.backspace:hover {
+            background: #f66356;
+        }
+
+        .key.shift {
+            background: #2196F3;
+            min-width: 70px;
+        }
+
+        .key.shift:hover {
+            background: #3196F3;
+        }
+
+        .key.shift.active {
+            background: #1976D2;
+        }
+
+        .key.caps {
+            background: #FF9800;
+            min-width: 80px;
+        }
+
+        .key.caps:hover {
+            background: #FFA820;
+        }
+
+        .key.caps.active {
+            background: #F57C00;
+        }
+
+        /* Body padding when keyboard is shown */
+        body.keyboard-active {
+            padding-bottom: 300px;
+        }
+
         @media (max-width: 480px) {
             .login-container {
                 padding: 30px;
@@ -166,7 +299,258 @@
         </div>
     </div>
 
+    <!-- Virtual Keyboard -->
+    <div class="virtual-keyboard" id="virtualKeyboard">
+        <div class="keyboard-header">
+            <span class="keyboard-title">Virtueel Toetsenbord</span>
+            <button class="keyboard-close" onclick="hideKeyboard()">✕ Sluiten</button>
+        </div>
+        <div class="keyboard-container">
+            <div class="keyboard-row">
+                <div class="key" data-key="1">1</div>
+                <div class="key" data-key="2">2</div>
+                <div class="key" data-key="3">3</div>
+                <div class="key" data-key="4">4</div>
+                <div class="key" data-key="5">5</div>
+                <div class="key" data-key="6">6</div>
+                <div class="key" data-key="7">7</div>
+                <div class="key" data-key="8">8</div>
+                <div class="key" data-key="9">9</div>
+                <div class="key" data-key="0">0</div>
+                <div class="key backspace" data-key="backspace">⌫</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key" data-key="q">q</div>
+                <div class="key" data-key="w">w</div>
+                <div class="key" data-key="e">e</div>
+                <div class="key" data-key="r">r</div>
+                <div class="key" data-key="t">t</div>
+                <div class="key" data-key="y">y</div>
+                <div class="key" data-key="u">u</div>
+                <div class="key" data-key="i">i</div>
+                <div class="key" data-key="o">o</div>
+                <div class="key" data-key="p">p</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key caps" data-key="caps">Caps</div>
+                <div class="key" data-key="a">a</div>
+                <div class="key" data-key="s">s</div>
+                <div class="key" data-key="d">d</div>
+                <div class="key" data-key="f">f</div>
+                <div class="key" data-key="g">g</div>
+                <div class="key" data-key="h">h</div>
+                <div class="key" data-key="j">j</div>
+                <div class="key" data-key="k">k</div>
+                <div class="key" data-key="l">l</div>
+                <div class="key enter" data-key="enter">Enter</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key shift" data-key="shift">Shift</div>
+                <div class="key" data-key="z">z</div>
+                <div class="key" data-key="x">x</div>
+                <div class="key" data-key="c">c</div>
+                <div class="key" data-key="v">v</div>
+                <div class="key" data-key="b">b</div>
+                <div class="key" data-key="n">n</div>
+                <div class="key" data-key="m">m</div>
+                <div class="key" data-key=",">,</div>
+                <div class="key" data-key=".">.</div>
+                <div class="key" data-key="-">-</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key space" data-key="space">Spatie</div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Virtual Keyboard Class
+        class VirtualKeyboard {
+            constructor() {
+                this.keyboard = document.getElementById('virtualKeyboard');
+                this.currentInput = null;
+                this.capsLock = false;
+                this.shift = false;
+                
+                this.init();
+            }
+            
+            init() {
+                // Add event listeners to all input fields
+                const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', (e) => this.showKeyboard(e.target));
+                    input.addEventListener('blur', (e) => {
+                        // Delay hiding keyboard to allow key clicks
+                        setTimeout(() => {
+                            if (!this.keyboard.contains(document.activeElement)) {
+                                this.hideKeyboard();
+                            }
+                        }, 100);
+                    });
+                });
+                
+                // Add event listeners to keyboard keys
+                const keys = document.querySelectorAll('.key');
+                keys.forEach(key => {
+                    key.addEventListener('click', (e) => this.handleKeyClick(e.target));
+                });
+                
+                // Prevent keyboard from losing focus
+                this.keyboard.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                });
+            }
+            
+            showKeyboard(input) {
+                this.currentInput = input;
+                this.keyboard.classList.add('show');
+                document.body.classList.add('keyboard-active');
+                
+                // Scroll input into view
+                setTimeout(() => {
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+            
+            hideKeyboard() {
+                this.keyboard.classList.remove('show');
+                document.body.classList.remove('keyboard-active');
+                this.currentInput = null;
+            }
+            
+            handleKeyClick(keyElement) {
+                if (!this.currentInput) return;
+                
+                const key = keyElement.getAttribute('data-key');
+                
+                switch(key) {
+                    case 'backspace':
+                        this.handleBackspace();
+                        break;
+                    case 'enter':
+                        this.handleEnter();
+                        break;
+                    case 'space':
+                        this.insertCharacter(' ');
+                        break;
+                    case 'shift':
+                        this.toggleShift();
+                        break;
+                    case 'caps':
+                        this.toggleCapsLock();
+                        break;
+                    default:
+                        this.insertCharacter(this.getCharacter(key));
+                        if (this.shift) {
+                            this.toggleShift(); // Turn off shift after one character
+                        }
+                        break;
+                }
+            }
+            
+            getCharacter(key) {
+                const shiftMap = {
+                    '1': '!', '2': '@', '3': '#', '4': '$', '5': '%',
+                    '6': '^', '7': '&', '8': '*', '9': '(', '0': ')',
+                    ',': '<', '.': '>', '-': '_'
+                };
+                
+                if (this.shift && shiftMap[key]) {
+                    return shiftMap[key];
+                }
+                
+                if ((this.shift || this.capsLock) && key.match(/[a-z]/)) {
+                    return key.toUpperCase();
+                }
+                
+                return key;
+            }
+            
+            insertCharacter(char) {
+                const start = this.currentInput.selectionStart;
+                const end = this.currentInput.selectionEnd;
+                const value = this.currentInput.value;
+                
+                this.currentInput.value = value.substring(0, start) + char + value.substring(end);
+                this.currentInput.setSelectionRange(start + 1, start + 1);
+                
+                // Trigger input event for any listeners
+                this.currentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            
+            handleBackspace() {
+                const start = this.currentInput.selectionStart;
+                const end = this.currentInput.selectionEnd;
+                const value = this.currentInput.value;
+                
+                if (start === end && start > 0) {
+                    this.currentInput.value = value.substring(0, start - 1) + value.substring(start);
+                    this.currentInput.setSelectionRange(start - 1, start - 1);
+                } else if (start !== end) {
+                    this.currentInput.value = value.substring(0, start) + value.substring(end);
+                    this.currentInput.setSelectionRange(start, start);
+                }
+                
+                this.currentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            
+            handleEnter() {
+                // You can customize this behavior
+                this.hideKeyboard();
+                
+                // Or trigger form submission
+                const form = this.currentInput.closest('form');
+                if (form) {
+                    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                    form.dispatchEvent(submitEvent);
+                }
+            }
+            
+            toggleShift() {
+                this.shift = !this.shift;
+                const shiftKey = document.querySelector('.key.shift');
+                if (this.shift) {
+                    shiftKey.classList.add('active');
+                } else {
+                    shiftKey.classList.remove('active');
+                }
+                this.updateKeyDisplay();
+            }
+            
+            toggleCapsLock() {
+                this.capsLock = !this.capsLock;
+                const capsKey = document.querySelector('.key.caps');
+                if (this.capsLock) {
+                    capsKey.classList.add('active');
+                } else {
+                    capsKey.classList.remove('active');
+                }
+                this.updateKeyDisplay();
+            }
+            
+            updateKeyDisplay() {
+                const letterKeys = document.querySelectorAll('.key[data-key]');
+                letterKeys.forEach(key => {
+                    const keyValue = key.getAttribute('data-key');
+                    if (keyValue.match(/[a-z]/)) {
+                        if (this.shift || this.capsLock) {
+                            key.textContent = keyValue.toUpperCase();
+                        } else {
+                            key.textContent = keyValue.toLowerCase();
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Global function to hide keyboard (called from close button)
+        function hideKeyboard() {
+            if (window.virtualKeyboard) {
+                window.virtualKeyboard.hideKeyboard();
+            }
+        }
+
         function validateLogin(event) {
             event.preventDefault();
             
@@ -191,6 +575,11 @@
             
             return false;
         }
+
+        // Initialize virtual keyboard when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            window.virtualKeyboard = new VirtualKeyboard();
+        });
     </script>
 </body>
 </html>

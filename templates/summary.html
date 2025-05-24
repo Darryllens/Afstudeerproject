@@ -108,12 +108,14 @@
         .button {
             background-color: #0800ff;
             color: white;
-            padding: 8px 15px;
+            padding: 12px 20px; /* Bigger for touch */
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem; /* Larger font */
             transition: background-color 0.3s;
+            min-height: 44px; /* Touch target minimum */
+            min-width: 44px;
         }
 
         .button:hover {
@@ -221,11 +223,12 @@
         }
         
         .user-selector select {
-            padding: 8px;
+            padding: 12px; /* Bigger for touch */
             border-radius: 5px;
             border: 1px solid #ddd;
             margin-right: 10px;
             font-size: 16px;
+            min-height: 44px;
         }
         
         .user-details {
@@ -237,16 +240,20 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem; /* Larger for touch */
+            padding: 8px 12px; /* Touch padding */
+            min-height: 44px;
         }
         
         .delete-button:hover {
             text-decoration: underline;
+            background-color: #f8d7da;
+            border-radius: 3px;
         }
         
         .action-buttons {
             display: flex;
-            gap: 5px;
+            gap: 8px; /* More space for touch */
         }
         
         .delete-single-button {
@@ -255,8 +262,10 @@
             border: 1px solid #dc3545;
             border-radius: 3px;
             cursor: pointer;
-            padding: 2px 5px;
-            font-size: 0.8rem;
+            padding: 8px 12px; /* Bigger touch target */
+            font-size: 1rem;
+            min-height: 44px;
+            min-width: 44px;
         }
         
         .delete-single-button:hover {
@@ -286,22 +295,31 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: white;
-            padding: 20px;
+            padding: 30px; /* More padding for touch */
             border-radius: 10px;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px; /* Bigger modal */
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal-title {
             margin-top: 0;
             color: #0800ff;
+            font-size: 1.5rem; /* Larger title */
         }
         
         .modal-buttons {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 15px; /* More space between buttons */
+            margin-top: 30px;
+        }
+
+        .modal-buttons .button {
+            padding: 15px 25px; /* Even bigger buttons in modal */
+            font-size: 1.1rem;
+            min-width: 120px;
         }
 
         .quantity-badge {
@@ -322,13 +340,64 @@
 
         #payButton {
             margin-left: 20px;
+            padding: 15px 25px; /* Bigger pay button */
+            font-size: 1.1rem;
         }
 
         #paymentDetails {
             background-color: #f8f9fa;
-            padding: 10px;
+            padding: 15px; /* More padding */
             border-radius: 5px;
-            line-height: 1.5;
+            line-height: 1.6; /* Better line spacing */
+            font-size: 1.1rem; /* Larger text */
+        }
+
+        /* QR Code Modal specific styles */
+        .qr-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 40px; /* Even more padding */
+            border-radius: 15px;
+            width: 95%;
+            max-width: 700px; /* Bigger QR modal */
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        /* Large close button for QR modal */
+        .qr-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .qr-close-button:hover {
+            background: #c82333;
+        }
+
+        /* Touch-friendly modal overlay click */
+        .modal-overlay-close {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
         }
 
         @media print {
@@ -344,7 +413,7 @@
                 top: 0;
                 width: 100%;
             }
-            #closeQrButton, #markAsPaidButton {
+            .qr-close-button, #closeQrButton, #markAsPaidButton {
                 display: none;
             }
         }
@@ -365,6 +434,22 @@
             
             #payButton {
                 margin-left: 0;
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            .modal-content, .qr-modal-content {
+                width: 98%;
+                padding: 20px;
+            }
+
+            .modal-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .modal-buttons .button {
+                width: 100%;
             }
         }
     </style>
@@ -382,6 +467,7 @@
     <div class="toast-container" id="toastContainer"></div>
     
     <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-overlay-close" onclick="hideConfirmation()"></div>
         <div class="modal-content">
             <h3 class="modal-title">Bevestiging</h3>
             <p id="confirmationText">Weet je zeker dat je dit item wilt verwijderen?</p>
@@ -393,11 +479,13 @@
     </div>
     
     <div class="confirmation-modal" id="qrCodeModal">
-        <div class="modal-content">
+        <div class="modal-overlay-close" onclick="closeQrModal()"></div>
+        <div class="qr-modal-content">
+            <button class="qr-close-button" onclick="closeQrModal()">✕</button>
             <h3 class="modal-title">Betaaloverzicht</h3>
             <p id="qrCodeText">Dit is een overzicht van de rekening (dummy QR-code, geen echte betaling):</p>
-            <div id="qrCodeContainer" style="text-align: center; margin: 20px 0;"></div>
-            <div id="paymentDetails" style="margin-bottom: 20px; text-align: center;"></div>
+            <div id="qrCodeContainer" style="text-align: center; margin: 30px 0;"></div>
+            <div id="paymentDetails" style="margin-bottom: 30px; text-align: center;"></div>
             <div class="modal-buttons">
                 <button id="closeQrButton" class="button secondary">Sluiten</button>
                 <button id="markAsPaidButton" class="button">Bevestig Afrekening</button>
@@ -461,6 +549,12 @@
         let currentDrinks = [];
         let currentTotal = 0;
         let groupedDrinks = [];
+        
+        // Function to close QR modal (multiple ways)
+        function closeQrModal() {
+            console.log('Closing QR modal...');
+            $('#qrCodeModal').hide();
+        }
         
         $(document).ready(function() {
             // Load user data when selecting a user
@@ -529,9 +623,16 @@
                 showPaymentQR(selectedUser, currentTotal);
             });
 
-            // Close QR code modal
-            $('#closeQrButton').click(function() {
-                $('#qrCodeModal').hide();
+            // Close QR code modal - multiple handlers for better touch support
+            $('#closeQrButton').click(closeQrModal);
+            $('.qr-close-button').click(closeQrModal);
+            
+            // ESC key to close modal
+            $(document).keydown(function(e) {
+                if (e.key === "Escape") {
+                    closeQrModal();
+                    hideConfirmation();
+                }
             });
 
             // Mark as paid button
@@ -539,14 +640,16 @@
                 if (!selectedUser) return;
                 
                 // Show confirmation before clearing drinks
-                showConfirmation(
-                    `Wil je bevestigen dat ${selectedUser} heeft afgerekend voor €${currentTotal.toFixed(2)}?`,
-                    function() {
-                        clearAllDrinks(selectedUser);
-                        $('#qrCodeModal').hide();
-                        showToast(`Afrekening voor ${selectedUser} is verwerkt`);
-                    }
-                );
+                closeQrModal(); // Close QR modal first
+                setTimeout(() => {
+                    showConfirmation(
+                        `Wil je bevestigen dat ${selectedUser} heeft afgerekend voor €${currentTotal.toFixed(2)}?`,
+                        function() {
+                            clearAllDrinks(selectedUser);
+                            showToast(`Afrekening voor ${selectedUser} is verwerkt`);
+                        }
+                    );
+                }, 300);
             });
             
             // Start polling for NFC scans
@@ -776,67 +879,6 @@
             );
         }
         
-                                function deleteGroupDrinks(group) {
-            // Create a copy of the IDs array
-            const idsToDelete = [...group.ids];
-            let deleteCount = 0;
-            let errorCount = 0;
-            
-            // Show initial toast
-            showToast(`Bezig met verwijderen van ${group.count} drankjes...`);
-            
-            // Function to delete a single drink
-            function deleteOneDrink(index) {
-                if (index >= idsToDelete.length) {
-                    // All deletion attempts completed
-                    if (errorCount === 0) {
-                        showToast(`${deleteCount} drankjes verwijderd`);
-                    } else {
-                        showToast(`${deleteCount} drankjes verwijderd, ${errorCount} fouten`, true);
-                    }
-                    
-                    // Reload user drinks
-                    loadUserDrinks(selectedUser);
-                    return;
-                }
-                
-                const drinkId = idsToDelete[index];
-                
-                fetch('/delete_drink', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_name: selectedUser,
-                        drink_id: drinkId
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        deleteCount++;
-                    } else {
-                        errorCount++;
-                        console.error('Error deleting drink:', data.error);
-                    }
-                    
-                    // Delete next drink
-                    deleteOneDrink(index + 1);
-                })
-                .catch(error => {
-                    errorCount++;
-                    console.error('Error deleting drink:', error);
-                    
-                    // Delete next drink
-                    deleteOneDrink(index + 1);
-                });
-            }
-            
-            // Start deletion process
-            deleteOneDrink(0);
-        }
-        
         function clearAllDrinks(userName) {
             fetch('/clear_user_drinks', {
                 method: 'POST',
@@ -916,6 +958,8 @@
         
         // Function to show payment QR code
         function showPaymentQR(userName, amount) {
+            console.log('Showing QR code for:', userName, amount);
+            
             // Generate a QR code for payment summary (dummy - not a real payment)
             const paymentInfo = {
                 user: userName,
@@ -937,19 +981,21 @@
             
             // Display QR code
             const qrCodeContainer = document.getElementById('qrCodeContainer');
-            qrCodeContainer.innerHTML = qr.createImgTag(5, 10); // Size, margin
+            qrCodeContainer.innerHTML = qr.createImgTag(8, 10); // Bigger size for touch
             
             // Add payment info
             const paymentDetails = document.getElementById('paymentDetails');
             paymentDetails.innerHTML = `
-                <strong>${userName}</strong><br>
-                Totaalbedrag: €${amount.toFixed(2)}<br>
-                Referentie: ${paymentInfo.reference}<br>
+                <strong style="font-size: 1.3rem;">${userName}</strong><br><br>
+                <strong style="font-size: 1.4rem;">Totaalbedrag: €${amount.toFixed(2)}</strong><br><br>
+                Referentie: ${paymentInfo.reference}<br><br>
                 <small style="color: #6c757d;">Deze QR code is alleen voor administratieve doeleinden</small>
             `;
             
             // Show the modal
             $('#qrCodeModal').show();
+            
+            console.log('QR modal should be visible now');
         }
         
         // Function to poll for NFC scans
@@ -1002,3 +1048,4 @@
     </script>
 </body>
 </html>
+                

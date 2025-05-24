@@ -8,86 +8,110 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        /* Optimized for DFR0678 7" 800x480 touchscreen with 44 drinks */
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            min-height: 100vh;
+            min-height: 480px;
             display: flex;
             flex-direction: column;
             background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
             color: #333;
+            overflow-x: hidden;
         }
 
         .header {
             background-color: #0800ff;
             color: white;
-            padding: 20px 0;
+            padding: 8px 0;
             text-align: center;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
             margin: 0;
-            font-size: 1.8rem;
+            font-size: 1.2rem;
         }
 
         .user-info {
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 10px;
+            padding: 6px;
             background-color: #f0f0f0;
             border-bottom: 1px solid #ddd;
+            font-size: 0.9rem;
         }
 
         .user-info img {
-            height: 30px;
-            margin-right: 10px;
+            height: 24px;
+            margin-right: 8px;
         }
 
         .main-container {
             flex: 1;
-            padding: 20px;
-            max-width: 1200px;
+            padding: 8px;
+            max-width: 100%;
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: row; /* Force horizontal layout */
+            gap: 8px;
+            align-items: flex-start; /* Align to top */
+        }
+
+        /* Two column layout for 800px width */
+        .left-column {
+            width: 280px;
+            flex-shrink: 0;
+            height: 100%;
+        }
+
+        .right-column {
+            flex: 1;
+            min-width: 500px;
+            height: 100%;
         }
 
         .card {
             background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 12px;
+            margin-bottom: 8px;
+            height: fit-content;
+            max-height: 100%; /* Prevent overflow */
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+            padding-bottom: 6px;
         }
 
         .card-title {
-            font-size: 1.3rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #0800ff;
             margin: 0;
         }
 
+        /* Compact table for user drinks */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 6px;
+            font-size: 0.8rem;
         }
 
         table th,
         table td {
-            padding: 10px;
+            padding: 4px 6px;
             text-align: left;
             border-bottom: 1px solid #eee;
         }
@@ -95,49 +119,55 @@
         table th {
             background-color: #f8f9fa;
             font-weight: 500;
+            font-size: 0.75rem;
         }
 
         .button {
             background-color: #0800ff;
             color: white;
-            padding: 8px 15px;
+            padding: 8px 12px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             transition: background-color 0.3s;
+            min-height: 32px;
         }
 
         .button:hover {
             background-color: #0056b3;
         }
 
+        /* Optimized drink grid for 44 drinks */
         .drink-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+            max-height: 320px;
+            overflow-y: auto;
         }
 
         .drink-item {
             background-color: #f8f9fa;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            width: calc(33.333% - 10px);
+            border-radius: 4px;
+            padding: 6px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             position: relative;
             overflow: hidden;
+            min-height: 60px;
+            justify-content: space-between;
         }
 
         .drink-item:hover {
             background-color: #e9ecef;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .drink-item.adding {
@@ -146,36 +176,46 @@
 
         .drink-name {
             font-weight: 500;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
+            font-size: 0.75rem;
+            line-height: 1.1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
         .drink-price {
             color: #0800ff;
             font-weight: 600;
+            font-size: 0.8rem;
         }
 
         .total-section {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 10px;
+            margin-top: 8px;
+            padding-top: 6px;
             border-top: 1px solid #eee;
             font-weight: 600;
+            font-size: 0.9rem;
         }
 
         .buttons {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 6px;
+            margin-top: 8px;
         }
 
         .success-message,
         .error-message {
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
+            padding: 6px;
+            border-radius: 4px;
+            margin-top: 6px;
             display: none;
+            font-size: 0.8rem;
         }
 
         .success-message {
@@ -188,33 +228,37 @@
             color: #721c24;
         }
 
+        /* Compact category headers */
         .category-title {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             color: #333;
-            margin: 20px 0 10px;
-            padding-bottom: 5px;
+            margin: 8px 0 4px;
+            padding-bottom: 2px;
             border-bottom: 1px solid #eee;
             width: 100%;
+            font-weight: 600;
+            grid-column: 1 / -1;
         }
 
         .toast-container {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 8px;
+            right: 8px;
             z-index: 1000;
+            max-width: 200px;
         }
 
         .toast {
             background-color: #d4edda;
             color: #155724;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 6px 10px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
             animation: slideIn 0.3s, fadeOut 0.5s 2.5s forwards;
-            max-width: 300px;
+            font-size: 0.8rem;
         }
 
         @keyframes slideIn {
@@ -222,7 +266,6 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
-
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -233,7 +276,6 @@
             from {
                 opacity: 1;
             }
-
             to {
                 opacity: 0;
                 visibility: hidden;
@@ -242,20 +284,19 @@
 
         .loader {
             display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #0800ff;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #0800ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin-right: 10px;
+            margin: auto;
         }
 
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
             }
-
             100% {
                 transform: rotate(360deg);
             }
@@ -263,32 +304,33 @@
 
         .quantity-badge {
             background-color: #f0f0f0;
-            border-radius: 12px;
-            padding: 2px 6px;
-            font-size: 0.85rem;
-            margin-right: 5px;
+            border-radius: 8px;
+            padding: 1px 4px;
+            font-size: 0.7rem;
+            margin-right: 3px;
             font-weight: bold;
         }
 
-        /* Toevoegen: Categorie filter */
+        /* Compact category filter */
         .category-filter {
             display: flex;
-            margin-top: 15px;
-            margin-bottom: 10px;
+            margin-top: 8px;
+            margin-bottom: 6px;
             overflow-x: auto;
-            padding-bottom: 5px;
+            padding-bottom: 2px;
+            gap: 4px;
         }
 
         .category-btn {
             background-color: #f0f0f0;
             border: 1px solid #ddd;
-            border-radius: 20px;
-            padding: 5px 15px;
-            margin-right: 8px;
+            border-radius: 12px;
+            padding: 4px 8px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             white-space: nowrap;
             transition: all 0.3s;
+            min-height: 28px;
         }
 
         .category-btn.active {
@@ -297,23 +339,111 @@
             border-color: #0800ff;
         }
 
-        @media (max-width: 768px) {
-            .drink-item {
-                width: calc(50% - 10px);
+        /* Scrollbar styling */
+        .drink-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .drink-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .drink-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .drink-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Loading message styling */
+        #drinksLoadingMessage {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Error message in drink list */
+        .error-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 10px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 4px;
+        }
+
+        /* Responsive adjustments for very small screens */
+        @media (max-width: 799px) {
+            .main-container {
+                flex-direction: column !important;
+                padding: 6px;
+            }
+            
+            .left-column,
+            .right-column {
+                width: 100% !important;
+                min-width: auto !important;
+            }
+            
+            .drink-list {
+                grid-template-columns: repeat(6, 1fr);
+                max-height: 200px;
             }
         }
 
-        @media (max-width: 480px) {
-            .drink-item {
-                width: 100%;
-            }
-
+        @media (min-width: 800px) {
             .main-container {
-                padding: 10px;
+                flex-direction: row !important;
             }
+        }
 
+        @media (max-height: 480px) {
+            .header {
+                padding: 4px 0;
+            }
+            
             .header h1 {
-                font-size: 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .user-info {
+                padding: 4px;
+                font-size: 0.8rem;
+            }
+            
+            .main-container {
+                padding: 6px;
+            }
+            
+            .drink-list {
+                max-height: 280px;
+            }
+        }
+
+        /* Hide elements that might not be essential on small screen */
+        .card-header div {
+            font-size: 0.75rem;
+        }
+
+        /* Ensure drink items are touch-friendly */
+        @media (pointer: coarse) {
+            .drink-item {
+                min-height: 65px;
+            }
+            
+            .button {
+                min-height: 36px;
+                padding: 10px 12px;
+            }
+            
+            .category-btn {
+                min-height: 32px;
+                padding: 6px 10px;
             }
         }
     </style>
@@ -327,78 +457,84 @@
     <div class="user-info">
         <img src="https://www.foot24.be/logos/hoevenen.png" alt="Logo" onerror="this.style.display='none'">
         <span id="userName">{{ user_name }}</span>
+        <span style="margin-left: 20px;">Card: <span id="cardUID">{{ card_uid }}</span></span>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
 
     <div class="main-container">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Your Drinks</h2>
-                <div>Card ID: <span id="cardUID">{{ card_uid }}</span></div>
-            </div>
+        <!-- Left column: User drinks -->
+        <div class="left-column">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Your Drinks</h2>
+                </div>
 
-            <div id="userDrinksContainer">
-                {% if user_drinks %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Drink</th>
-                            <th>Prijs per stuk</th>
-                            <th>Totaal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="drinksTableBody">
-                        <!-- Grouped drinks will be loaded here by JavaScript -->
-                    </tbody>
-                </table>
-                <div class="total-section">
-                    <span>Total</span>
-                    <span id="totalAmount">€{{ total_spent }}</span>
+                <div id="userDrinksContainer">
+                    {% if user_drinks %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Drink</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drinksTableBody">
+                            <!-- Grouped drinks will be loaded here by JavaScript -->
+                        </tbody>
+                    </table>
+                    <div class="total-section">
+                        <span>Total</span>
+                        <span id="totalAmount">€{{ total_spent }}</span>
+                    </div>
+                    {% else %}
+                    <p id="noDrinksMessage">No drinks ordered yet.</p>
+                    <table style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Drink</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drinksTableBody">
+                        </tbody>
+                    </table>
+                    <div class="total-section" style="display: none;">
+                        <span>Total</span>
+                        <span id="totalAmount">€0.00</span>
+                    </div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <p id="noDrinksMessage">You haven't ordered any drinks yet.</p>
-                <table style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Drink</th>
-                            <th>Prijs per stuk</th>
-                            <th>Totaal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="drinksTableBody">
-                    </tbody>
-                </table>
-                <div class="total-section" style="display: none;">
-                    <span>Total</span>
-                    <span id="totalAmount">€0.00</span>
+
+                <div class="buttons">
+                    <button id="backToWelcome" class="button">Back to Welcome</button>
                 </div>
-                {% endif %}
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Available Drinks</h2>
-                <button id="refreshDrinks" class="button">Refresh</button>
-            </div>
+        <!-- Right column: Available drinks -->
+        <div class="right-column">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Available Drinks (44 total)</h2>
+                    <button id="refreshDrinks" class="button">Refresh</button>
+                </div>
 
-            <!-- Toevoegen: Categorie filter buttons -->
-            <div class="category-filter" id="categoryFilter">
-                <button class="category-btn active" data-category="all">Alle</button>
-                <button class="category-btn" data-category="alcoholisch">Alcoholisch</button>
-                <button class="category-btn" data-category="frisdrank">Frisdrank</button>
-                <button class="category-btn" data-category="warme-dranken">Warme dranken</button>
-                <button class="category-btn" data-category="snacks">Snacks</button>
-            </div>
+                <!-- Category filter buttons -->
+                <div class="category-filter" id="categoryFilter">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="alcoholisch">Alcohol</button>
+                    <button class="category-btn" data-category="frisdrank">Soft Drinks</button>
+                    <button class="category-btn" data-category="warme-dranken">Hot Drinks</button>
+                    <button class="category-btn" data-category="snacks">Snacks</button>
+                </div>
 
-            <div id="drinkList" class="drink-list">
-                <!-- Drankjes worden dynamisch geladen uit de database -->
-                <div id="drinksLoadingMessage">Drankjes laden...</div>
-            </div>
-
-            <div class="buttons">
-                <button id="backToWelcome" class="button">Back to Welcome</button>
+                <div id="drinkList" class="drink-list">
+                    <!-- 44 drinks will be loaded here dynamically -->
+                    <div id="drinksLoadingMessage">Loading drinks...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -408,12 +544,11 @@
         const cardUID = "{{ card_uid }}";
         let totalSpent = {{ total_spent|default(0) }};
         let userDrinks = [];
-        let allDrinks = []; // Om alle drankjes op te slaan voor filtering
-        let currentDisplayCategory = 'all'; // Standaard categorie is 'alle'
+        let allDrinks = [];
+        let currentDisplayCategory = 'all';
         
-        // Mapping van database categorieën naar gewenste weergavecategorieën
+        // Category mapping
         const categoryMapping = {
-            // Voorbeeldmapping - pas deze aan op basis van je database categorieën
             'Bier': 'alcoholisch',
             'Wijn': 'alcoholisch',
             'Sterke drank': 'alcoholisch',
@@ -428,17 +563,13 @@
             'Chips': 'snacks',
             'Nootjes': 'snacks',
             'Snoep': 'snacks'
-            // Voeg meer categorieën toe op basis van je database
         };
         
-        // Functie om database categorie naar weergavecategorie te vertalen
         function mapCategory(dbCategory) {
-            // Als de categorie in onze mapping voorkomt, gebruik die
             if (categoryMapping[dbCategory]) {
                 return categoryMapping[dbCategory];
             }
             
-            // Fallback logica - kijk of de naam van de categorie een keyword bevat
             const lowerCategory = dbCategory.toLowerCase();
             
             if (lowerCategory.includes('bier') || lowerCategory.includes('wijn') || 
@@ -463,12 +594,10 @@
                 return 'snacks';
             }
             
-            // Als geen match gevonden, gebruik de oorspronkelijke categorie
             return 'overig';
         }
         
         {% if user_drinks %}
-        // Initialize the user drinks from the passed data
         userDrinks = [
             {% for drink in user_drinks %}
             {
@@ -481,29 +610,23 @@
         ];
         {% endif %}
 
-        // Document ready handler
         $(document).ready(function () {
-            // Group and display drinks
             if (userDrinks.length > 0) {
                 groupAndDisplayDrinks();
             }
             
-            // Load available drinks from the database
             loadAvailableDrinks();
             
-            // Refresh button: Reload both available drinks and user's drinks
             $('#refreshDrinks').click(function () {
                 loadAvailableDrinks();
-                loadUserDrinks(); // Refresh user's drink history
-                showToast("Drink lists refreshed");
+                loadUserDrinks();
+                showToast("Drinks refreshed");
             });
 
-            // Back to welcome button
             $('#backToWelcome').click(function () {
                 window.location.href = '/welcome';
             });
             
-            // Categorie filter knoppen
             $('.category-btn').click(function() {
                 $('.category-btn').removeClass('active');
                 $(this).addClass('active');
@@ -515,9 +638,7 @@
             });
         });
 
-        // Group drinks by name and price for display
         function groupAndDisplayDrinks() {
-            // Create a map to group drinks by name and price
             const drinkMap = new Map();
             
             userDrinks.forEach(drink => {
@@ -537,11 +658,9 @@
                 }
             });
             
-            // Convert map to array and sort by drink name
             const groupedDrinks = Array.from(drinkMap.values());
             groupedDrinks.sort((a, b) => a.drink_name.localeCompare(b.drink_name));
             
-            // Clear and update the table
             const $drinksTableBody = $('#drinksTableBody');
             $drinksTableBody.empty();
             
@@ -557,7 +676,6 @@
             });
         }
 
-        // Load user drinks from the server
         function loadUserDrinks() {
             $.ajax({
                 url: '/get_user_drinks',
@@ -567,14 +685,12 @@
                     if (response.success) {
                         userDrinks = response.drinks;
                         
-                        // Update the display
                         if (userDrinks.length > 0) {
                             $('#noDrinksMessage').hide();
                             $('table').show();
                             $('.total-section').show();
                             groupAndDisplayDrinks();
                             
-                            // Recalculate total
                             totalSpent = userDrinks.reduce((sum, drink) => sum + parseFloat(drink.drink_price), 0);
                             $('#totalAmount').text(`€${totalSpent.toFixed(2)}`);
                         } else {
@@ -592,19 +708,19 @@
             });
         }
 
-        // Load available drinks from the database
         function loadAvailableDrinks() {
-            // Show loading message
-            $('#drinkList').html('<div id="drinksLoadingMessage">Drankjes laden...</div>');
+            $('#drinkList').html('<div id="drinksLoadingMessage">Loading 44 drinks...</div>');
             
-            // Fetch drinks from the server
             $.ajax({
                 url: '/get_drinks',
                 type: 'GET',
                 success: function(response) {
                     if (response.success) {
-                        allDrinks = response.drinks; // Sla alle drankjes op voor latere filtering
+                        allDrinks = response.drinks;
                         displayAvailableDrinks(response.drinks);
+                        
+                        // Update title with actual count
+                        $('.card-title:contains("Available Drinks")').text(`Available Drinks (${response.drinks.length} total)`);
                     } else {
                         $('#drinkList').html(`<div class="error-message">Error: ${response.error}</div>`);
                     }
@@ -615,7 +731,6 @@
             });
         }
 
-        // Display available drinks and group by category
         function displayAvailableDrinks(drinks) {
             const $drinkList = $('#drinkList');
             $drinkList.empty();
@@ -624,10 +739,7 @@
             const categories = {};
             
             drinks.forEach(drink => {
-                // Vertaal categorie uit database naar onze gewenste categorieën
                 const mappedCategory = mapCategory(drink.categorie);
-                
-                // Sla de gemapte categorie op bij de drink voor latere filtering
                 drink.mappedCategory = mappedCategory;
                 
                 if (!categories[drink.categorie]) {
@@ -636,10 +748,10 @@
                 categories[drink.categorie].push(drink);
             });
             
-            // Sort categories alphabetically and display drinks
+            // Display drinks by category
             Object.keys(categories).sort().forEach(category => {
                 // Add category header
-                $drinkList.append(`<div class="category-title">${category}</div>`);
+                $drinkList.append(`<div class="category-title">${category} (${categories[category].length})</div>`);
                 
                 // Sort drinks within category by name
                 categories[category].sort((a, b) => a.Naam.localeCompare(b.Naam));
@@ -650,7 +762,7 @@
                     const mappedCategory = drink.mappedCategory || mapCategory(drink.categorie);
                     
                     const drinkItem = `
-                        <div class="drink-item" data-name="${drink.Naam}" data-price="${drink.prijs}" data-id="${drink.ID}" data-category="${mappedCategory}">
+                        <div class="drink-item" data-name="${drink.Naam}" data-price="${drink.prijs}" data-id="${drink.ID}" data-category="${mappedCategory}" title="${drink.Naam} - €${formattedPrice}">
                             <div class="drink-name">${drink.Naam}</div>
                             <div class="drink-price">€${formattedPrice}</div>
                         </div>
@@ -659,50 +771,40 @@
                 });
             });
             
-            // If no drinks found
             if (Object.keys(categories).length === 0) {
-                $drinkList.html('<div>Geen drankjes gevonden. Voeg drankjes toe in de database.</div>');
+                $drinkList.html('<div class="error-message">No drinks found.</div>');
             }
             
-            // Als er een actieve categorie is, pas dan de filtering toe
             if (currentDisplayCategory !== 'all') {
                 filterDrinksByCategory(currentDisplayCategory);
             }
             
-            // Attach click event to newly added drink items
+            // Attach click events
             $('.drink-item').click(function() {
                 const $this = $(this);
                 const drinkName = $this.data('name');
                 const drinkPrice = $this.data('price');
                 const drinkId = $this.data('id');
 
-                // Visual feedback
                 $this.addClass('adding');
-
                 addDrinkToUser(drinkName, drinkPrice, $this, drinkId);
             });
         }
         
-        // Filter drinks by category
         function filterDrinksByCategory(category) {
             if (category === 'all') {
-                // Toon alle drankjes
                 $('.drink-item').show();
                 $('.category-title').show();
             } else {
-                // Verberg eerst alles
                 $('.drink-item').hide();
                 $('.category-title').hide();
                 
-                // Toon alleen drankjes van de geselecteerde categorie
                 $(`.drink-item[data-category="${category}"]`).show();
                 
-                // Toon alleen categorieën die zichtbare drankjes hebben
                 $('.category-title').each(function() {
                     const $title = $(this);
                     const $nextItems = $title.nextUntil('.category-title');
                     
-                    // Check of er zichtbare drankjes zijn in deze categorie
                     const hasVisibleDrinks = $nextItems.filter(':visible').length > 0;
                     
                     if (hasVisibleDrinks) {
@@ -712,9 +814,7 @@
             }
         }
 
-        // Add a drink to the user's account
         function addDrinkToUser(drinkName, drinkPrice, $element, drinkId) {
-            // Add loader to the drink item
             const $loader = $('<div class="loader"></div>');
             $element.append($loader);
             $loader.show();
@@ -727,17 +827,14 @@
                     user_name: userName,
                     drink_name: drinkName,
                     drink_price: drinkPrice,
-                    drink_id: drinkId  // Stuur de drink_id mee
+                    drink_id: drinkId
                 }),
                 success: function (response) {
                     $loader.hide();
                     $element.removeClass('adding');
 
                     if (response.success) {
-                        // Show success toast
                         showToast(response.message);
-                        
-                        // Refresh user drinks from the server to get the complete list
                         loadUserDrinks();
                     } else {
                         showToast("Error: " + response.error, true);
@@ -751,13 +848,6 @@
             });
         }
 
-        // Update the total displayed
-        function updateTotal(amount) {
-            totalSpent += amount;
-            $('#totalAmount').text(`€${totalSpent.toFixed(2)}`);
-        }
-
-        // Show a toast notification
         function showToast(message, isError = false) {
             const toastContainer = $('#toastContainer');
             const toast = $('<div class="toast"></div>');
@@ -771,7 +861,6 @@
 
             toastContainer.append(toast);
 
-            // Remove toast after animation completes
             setTimeout(() => {
                 toast.remove();
             }, 3000);
