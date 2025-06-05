@@ -3,40 +3,22 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>User Dashboard - Touch Optimized</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Complete Touch Optimization for DFR0678 7" 800x480 touchscreen */
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            touch-action: manipulation;
-            -webkit-overflow-scrolling: touch;
-            overflow-scrolling: touch;
-            height: 100%;
-        }
-
+        /* Optimized for DFR0678 7" 800x480 touchscreen with 44 drinks */
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            height: 100vh;
+            min-height: 480px;
             display: flex;
             flex-direction: column;
             background: linear-gradient(135deg, #f9f9f9 0%, #f0f0f0 100%);
             color: #333;
             overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-            -webkit-overflow-scrolling: touch;
         }
 
         .header {
@@ -45,7 +27,6 @@
             padding: 8px 0;
             text-align: center;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0;
         }
 
         .header h1 {
@@ -61,7 +42,6 @@
             background-color: #f0f0f0;
             border-bottom: 1px solid #ddd;
             font-size: 0.9rem;
-            flex-shrink: 0;
         }
 
         .user-info img {
@@ -72,27 +52,27 @@
         .main-container {
             flex: 1;
             padding: 8px;
+            max-width: 100%;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
             display: flex;
+            flex-direction: row; /* Force horizontal layout */
             gap: 8px;
-            overflow: hidden;
-            min-height: 0;
+            align-items: flex-start; /* Align to top */
         }
 
-        /* Touch-optimized columns */
+        /* Two column layout for 800px width */
         .left-column {
             width: 280px;
             flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            height: 100%;
         }
 
         .right-column {
             flex: 1;
             min-width: 500px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            height: 100%;
         }
 
         .card {
@@ -101,10 +81,8 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             padding: 12px;
             margin-bottom: 8px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 0;
+            height: fit-content;
+            max-height: 100%; /* Prevent overflow */
         }
 
         .card-header {
@@ -114,7 +92,6 @@
             margin-bottom: 8px;
             border-bottom: 1px solid #eee;
             padding-bottom: 6px;
-            flex-shrink: 0;
         }
 
         .card-title {
@@ -124,18 +101,11 @@
             margin: 0;
         }
 
-        /* Touch-optimized scrollable table */
-        .table-container {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            min-height: 0;
-        }
-
+        /* Compact table for user drinks */
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 6px;
             font-size: 0.8rem;
         }
 
@@ -150,123 +120,63 @@
             background-color: #f8f9fa;
             font-weight: 500;
             font-size: 0.75rem;
-            position: sticky;
-            top: 0;
-            z-index: 10;
         }
 
-        /* Touch-friendly buttons */
         .button {
             background-color: #0800ff;
             color: white;
-            padding: 12px 16px;
+            padding: 8px 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            min-height: 44px;
-            min-width: 44px;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .button:hover,
-        .button:active {
-            background-color: #0056b3;
-            transform: scale(1.05);
-        }
-
-        /* Touch-optimized drink grid with smooth scrolling */
-        .drinks-container {
-            flex: 1;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .category-filter {
-            display: flex;
-            gap: 4px;
-            margin: 8px 0 6px;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 2px;
-            flex-shrink: 0;
-        }
-
-        .category-btn {
-            background-color: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            white-space: nowrap;
-            transition: all 0.2s;
+            font-size: 0.8rem;
+            transition: background-color 0.3s;
             min-height: 32px;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
-        .category-btn:active {
-            transform: scale(0.95);
+        .button:hover {
+            background-color: #0056b3;
         }
 
-        .category-btn.active {
-            background-color: #0800ff;
-            color: white;
-            border-color: #0800ff;
-        }
-
+        /* Optimized drink grid for 44 drinks */
         .drink-list {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            padding: 2px;
-            min-height: 0;
+            margin-top: 8px;
+            max-height: 320px;
+            overflow-y: auto;
         }
 
-        /* Touch-optimized drink items */
         .drink-item {
             background-color: #f8f9fa;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 8px;
+            border-radius: 4px;
+            padding: 6px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
-            min-height: 70px;
+            min-height: 60px;
             justify-content: space-between;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            user-select: none;
         }
 
-        .drink-item:active {
+        .drink-item:hover {
             background-color: #e9ecef;
-            transform: scale(0.98);
+            transform: scale(1.02);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .drink-item.adding {
             background-color: #d4edda;
-            border-color: #28a745;
         }
 
         .drink-name {
             font-weight: 500;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             font-size: 0.75rem;
             line-height: 1.1;
             overflow: hidden;
@@ -282,21 +192,6 @@
             font-size: 0.8rem;
         }
 
-        /* Category headers in grid */
-        .category-title {
-            font-size: 0.9rem;
-            color: #333;
-            margin: 8px 0 4px;
-            padding-bottom: 2px;
-            border-bottom: 1px solid #eee;
-            font-weight: 600;
-            grid-column: 1 / -1;
-            background-color: white;
-            position: sticky;
-            top: 0;
-            z-index: 5;
-        }
-
         .total-section {
             display: flex;
             justify-content: space-between;
@@ -305,7 +200,6 @@
             border-top: 1px solid #eee;
             font-weight: 600;
             font-size: 0.9rem;
-            flex-shrink: 0;
         }
 
         .buttons {
@@ -313,54 +207,39 @@
             justify-content: flex-end;
             gap: 6px;
             margin-top: 8px;
-            flex-shrink: 0;
         }
 
-        /* Touch-friendly scrollbars */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
+        .success-message,
+        .error-message {
+            padding: 6px;
             border-radius: 4px;
+            margin-top: 6px;
+            display: none;
+            font-size: 0.8rem;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 4px;
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.5);
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
         }
 
-        /* Touch feedback animations */
-        .touch-feedback {
-            position: relative;
-            overflow: hidden;
+        /* Compact category headers */
+        .category-title {
+            font-size: 0.9rem;
+            color: #333;
+            margin: 8px 0 4px;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #eee;
+            width: 100%;
+            font-weight: 600;
+            grid-column: 1 / -1;
         }
 
-        .touch-feedback::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.3s, height 0.3s;
-        }
-
-        .touch-feedback:active::before {
-            width: 100px;
-            height: 100px;
-        }
-
-        /* Toast notifications */
         .toast-container {
             position: fixed;
             top: 8px;
@@ -372,12 +251,14 @@
         .toast {
             background-color: #d4edda;
             color: #155724;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 4px;
             margin-bottom: 6px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
             animation: slideIn 0.3s, fadeOut 0.5s 2.5s forwards;
+            font-size: 0.8rem;
         }
 
         @keyframes slideIn {
@@ -385,7 +266,6 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
-
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -396,7 +276,6 @@
             from {
                 opacity: 1;
             }
-
             to {
                 opacity: 0;
                 visibility: hidden;
@@ -418,7 +297,6 @@
             0% {
                 transform: rotate(0deg);
             }
-
             100% {
                 transform: rotate(360deg);
             }
@@ -433,7 +311,54 @@
             font-weight: bold;
         }
 
-        /* Loading and error states */
+        /* Compact category filter */
+        .category-filter {
+            display: flex;
+            margin-top: 8px;
+            margin-bottom: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            gap: 4px;
+        }
+
+        .category-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            transition: all 0.3s;
+            min-height: 28px;
+        }
+
+        .category-btn.active {
+            background-color: #0800ff;
+            color: white;
+            border-color: #0800ff;
+        }
+
+        /* Scrollbar styling */
+        .drink-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .drink-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .drink-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .drink-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Loading message styling */
         #drinksLoadingMessage {
             grid-column: 1 / -1;
             text-align: center;
@@ -442,6 +367,7 @@
             font-style: italic;
         }
 
+        /* Error message in drink list */
         .error-message {
             grid-column: 1 / -1;
             text-align: center;
@@ -451,21 +377,28 @@
             border-radius: 4px;
         }
 
-        /* Responsive touch optimizations */
+        /* Responsive adjustments for very small screens */
         @media (max-width: 799px) {
             .main-container {
-                flex-direction: column;
+                flex-direction: column !important;
                 padding: 6px;
             }
-
+            
             .left-column,
             .right-column {
-                width: 100%;
-                min-width: auto;
+                width: 100% !important;
+                min-width: auto !important;
             }
-
+            
             .drink-list {
                 grid-template-columns: repeat(6, 1fr);
+                max-height: 200px;
+            }
+        }
+
+        @media (min-width: 800px) {
+            .main-container {
+                flex-direction: row !important;
             }
         }
 
@@ -473,58 +406,50 @@
             .header {
                 padding: 4px 0;
             }
-
+            
             .header h1 {
                 font-size: 1rem;
             }
-
+            
             .user-info {
                 padding: 4px;
                 font-size: 0.8rem;
             }
+            
+            .main-container {
+                padding: 6px;
+            }
+            
+            .drink-list {
+                max-height: 280px;
+            }
         }
 
-        /* Touch-specific improvements */
+        /* Hide elements that might not be essential on small screen */
+        .card-header div {
+            font-size: 0.75rem;
+        }
+
+        /* Ensure drink items are touch-friendly */
         @media (pointer: coarse) {
             .drink-item {
-                min-height: 75px;
-                padding: 10px;
+                min-height: 65px;
             }
-
+            
             .button {
-                min-height: 48px;
-                padding: 12px 16px;
-            }
-
-            .category-btn {
                 min-height: 36px;
-                padding: 8px 12px;
+                padding: 10px 12px;
             }
-
-            /* Larger touch targets */
-            table td,
-            table th {
-                padding: 8px 6px;
+            
+            .category-btn {
+                min-height: 32px;
+                padding: 6px 10px;
             }
-        }
-
-        /* Prevent text selection on touch */
-        .no-select {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        /* Momentum scrolling for all scrollable areas */
-        .scrollable {
-            -webkit-overflow-scrolling: touch;
-            overflow-scrolling: touch;
         }
     </style>
 </head>
 
-<body class="no-select">
+<body>
     <div class="header">
         <h1>Welcome to Patro Hoevenen</h1>
     </div>
@@ -545,41 +470,37 @@
                     <h2 class="card-title">Your Drinks</h2>
                 </div>
 
-                <div id="userDrinksContainer" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                <div id="userDrinksContainer">
                     {% if user_drinks %}
-                    <div class="table-container scrollable">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Drink</th>
-                                    <th>Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="drinksTableBody">
-                                <!-- Grouped drinks will be loaded here by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Drink</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drinksTableBody">
+                            <!-- Grouped drinks will be loaded here by JavaScript -->
+                        </tbody>
+                    </table>
                     <div class="total-section">
                         <span>Total</span>
                         <span id="totalAmount">€{{ total_spent }}</span>
                     </div>
                     {% else %}
                     <p id="noDrinksMessage">No drinks ordered yet.</p>
-                    <div class="table-container scrollable" style="display: none;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Drink</th>
-                                    <th>Price</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="drinksTableBody">
-                            </tbody>
-                        </table>
-                    </div>
+                    <table style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Drink</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drinksTableBody">
+                        </tbody>
+                    </table>
                     <div class="total-section" style="display: none;">
                         <span>Total</span>
                         <span id="totalAmount">€0.00</span>
@@ -588,7 +509,7 @@
                 </div>
 
                 <div class="buttons">
-                    <button id="backToWelcome" class="button touch-feedback">Uitloggen</button>
+                    <button id="backToWelcome" class="button">Uitloggen</button>
                 </div>
             </div>
         </div>
@@ -598,23 +519,21 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">Available Drinks (44 total)</h2>
-                    <button id="refreshDrinks" class="button touch-feedback">Refresh</button>
+                    <button id="refreshDrinks" class="button">Refresh</button>
                 </div>
 
-                <div class="drinks-container">
-                    <!-- Category filter buttons -->
-                    <div class="category-filter scrollable" id="categoryFilter">
-                        <button class="category-btn active touch-feedback" data-category="all">All</button>
-                        <button class="category-btn touch-feedback" data-category="alcoholisch">Alcohol</button>
-                        <button class="category-btn touch-feedback" data-category="frisdrank">Soft Drinks</button>
-                        <button class="category-btn touch-feedback" data-category="warme-dranken">Hot Drinks</button>
-                        <button class="category-btn touch-feedback" data-category="snacks">Snacks</button>
-                    </div>
+                <!-- Category filter buttons -->
+                <div class="category-filter" id="categoryFilter">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="alcoholisch">Alcohol</button>
+                    <button class="category-btn" data-category="frisdrank">Soft Drinks</button>
+                    <button class="category-btn" data-category="warme-dranken">Hot Drinks</button>
+                    <button class="category-btn" data-category="snacks">Snacks</button>
+                </div>
 
-                    <div id="drinkList" class="drink-list scrollable">
-                        <!-- 44 drinks will be loaded here dynamically -->
-                        <div id="drinksLoadingMessage">Loading drinks...</div>
-                    </div>
+                <div id="drinkList" class="drink-list">
+                    <!-- 44 drinks will be loaded here dynamically -->
+                    <div id="drinksLoadingMessage">Loading drinks...</div>
                 </div>
             </div>
         </div>
@@ -623,16 +542,11 @@
     <script>
         const userName = "{{ user_name }}";
         const cardUID = "{{ card_uid }}";
-        let totalSpent = {{ total_spent|default (0) }};
+        let totalSpent = {{ total_spent|default(0) }};
         let userDrinks = [];
         let allDrinks = [];
         let currentDisplayCategory = 'all';
-
-        // Touch handling variables
-        let touchStartTime = 0;
-        let touchStartX = 0;
-        let touchStartY = 0;
-
+        
         // Category mapping
         const categoryMapping = {
             'Bier': 'alcoholisch',
@@ -650,128 +564,59 @@
             'Nootjes': 'snacks',
             'Snoep': 'snacks'
         };
-
+        
         function mapCategory(dbCategory) {
             if (categoryMapping[dbCategory]) {
                 return categoryMapping[dbCategory];
             }
-
+            
             const lowerCategory = dbCategory.toLowerCase();
-
-            if (lowerCategory.includes('bier') || lowerCategory.includes('wijn') ||
+            
+            if (lowerCategory.includes('bier') || lowerCategory.includes('wijn') || 
                 lowerCategory.includes('alcohol') || lowerCategory.includes('sterke') ||
                 lowerCategory.includes('jenever') || lowerCategory.includes('whisky')) {
                 return 'alcoholisch';
             }
-
-            if (lowerCategory.includes('cola') || lowerCategory.includes('fanta') ||
+            
+            if (lowerCategory.includes('cola') || lowerCategory.includes('fanta') || 
                 lowerCategory.includes('water') || lowerCategory.includes('frisdrank') ||
                 lowerCategory.includes('sap') || lowerCategory.includes('fris')) {
                 return 'frisdrank';
             }
-
-            if (lowerCategory.includes('koffie') || lowerCategory.includes('thee') ||
+            
+            if (lowerCategory.includes('koffie') || lowerCategory.includes('thee') || 
                 lowerCategory.includes('chocola') || lowerCategory.includes('warm')) {
                 return 'warme-dranken';
             }
-
-            if (lowerCategory.includes('chips') || lowerCategory.includes('snack') ||
+            
+            if (lowerCategory.includes('chips') || lowerCategory.includes('snack') || 
                 lowerCategory.includes('noot') || lowerCategory.includes('eten')) {
                 return 'snacks';
             }
-
+            
             return 'overig';
         }
-
+        
         {% if user_drinks %}
         userDrinks = [
             {% for drink in user_drinks %}
-        {
-            id: { { drink.id } },
-            drink_name: "{{ drink.drink_name }}",
-                drink_price: { { drink.drink_price } },
-            added_on: "{{ drink.added_on }}"
-        },
-        {% endfor %}
+            {
+                id: {{ drink.id }},
+                drink_name: "{{ drink.drink_name }}",
+                drink_price: {{ drink.drink_price }},
+                added_on: "{{ drink.added_on }}"
+            },
+            {% endfor %}
         ];
         {% endif %}
-
-        // Enhanced touch event handling
-        function addTouchSupport() {
-            // Add touch feedback to all interactive elements
-            document.querySelectorAll('.touch-feedback').forEach(element => {
-                element.addEventListener('touchstart', function (e) {
-                    touchStartTime = Date.now();
-                    touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
-                    this.style.transform = 'scale(0.95)';
-                }, { passive: true });
-
-                element.addEventListener('touchend', function (e) {
-                    const touchEndTime = Date.now();
-                    const touchDuration = touchEndTime - touchStartTime;
-
-                    // Only trigger click if it was a quick tap (not a scroll)
-                    if (touchDuration < 300) {
-                        const touchEndX = e.changedTouches[0].clientX;
-                        const touchEndY = e.changedTouches[0].clientY;
-                        const deltaX = Math.abs(touchEndX - touchStartX);
-                        const deltaY = Math.abs(touchEndY - touchStartY);
-
-                        // Only trigger if movement was minimal (not a swipe)
-                        if (deltaX < 10 && deltaY < 10) {
-                            // Trigger the click after a short delay for visual feedback
-                            setTimeout(() => {
-                                if (this.onclick) {
-                                    this.onclick();
-                                } else {
-                                    this.click();
-                                }
-                            }, 50);
-                        }
-                    }
-
-                    this.style.transform = 'scale(1)';
-                }, { passive: true });
-
-                element.addEventListener('touchcancel', function () {
-                    this.style.transform = 'scale(1)';
-                }, { passive: true });
-            });
-        }
-
-        // Smooth scrolling for scrollable areas
-        function addSmoothScrolling() {
-            document.querySelectorAll('.scrollable').forEach(element => {
-                let isScrolling = false;
-                let scrollTimeout;
-
-                element.addEventListener('scroll', function () {
-                    if (!isScrolling) {
-                        isScrolling = true;
-                        this.style.scrollBehavior = 'smooth';
-                    }
-
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => {
-                        isScrolling = false;
-                        this.style.scrollBehavior = 'auto';
-                    }, 150);
-                }, { passive: true });
-            });
-        }
 
         $(document).ready(function () {
             if (userDrinks.length > 0) {
                 groupAndDisplayDrinks();
             }
-
+            
             loadAvailableDrinks();
-
-            // Add touch support after page load
-            addTouchSupport();
-            addSmoothScrolling();
-
+            
             $('#refreshDrinks').click(function () {
                 loadAvailableDrinks();
                 loadUserDrinks();
@@ -781,24 +626,24 @@
             $('#backToWelcome').click(function () {
                 window.location.href = '/welcome';
             });
-
-            $('.category-btn').click(function () {
+            
+            $('.category-btn').click(function() {
                 $('.category-btn').removeClass('active');
                 $(this).addClass('active');
-
+                
                 const category = $(this).data('category');
                 currentDisplayCategory = category;
-
+                
                 filterDrinksByCategory(category);
             });
         });
 
         function groupAndDisplayDrinks() {
             const drinkMap = new Map();
-
+            
             userDrinks.forEach(drink => {
                 const key = `${drink.drink_name}-${drink.drink_price}`;
-
+                
                 if (!drinkMap.has(key)) {
                     drinkMap.set(key, {
                         drink_name: drink.drink_name,
@@ -812,13 +657,13 @@
                     group.totalPrice += parseFloat(drink.drink_price);
                 }
             });
-
+            
             const groupedDrinks = Array.from(drinkMap.values());
             groupedDrinks.sort((a, b) => a.drink_name.localeCompare(b.drink_name));
-
+            
             const $drinksTableBody = $('#drinksTableBody');
             $drinksTableBody.empty();
-
+            
             groupedDrinks.forEach(group => {
                 const row = `
                     <tr>
@@ -836,28 +681,28 @@
                 url: '/get_user_drinks',
                 type: 'GET',
                 data: { user_name: userName },
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         userDrinks = response.drinks;
-
+                        
                         if (userDrinks.length > 0) {
                             $('#noDrinksMessage').hide();
-                            $('.table-container').show();
+                            $('table').show();
                             $('.total-section').show();
                             groupAndDisplayDrinks();
-
+                            
                             totalSpent = userDrinks.reduce((sum, drink) => sum + parseFloat(drink.drink_price), 0);
                             $('#totalAmount').text(`€${totalSpent.toFixed(2)}`);
                         } else {
                             $('#noDrinksMessage').show();
-                            $('.table-container').hide();
+                            $('table').hide();
                             $('.total-section').hide();
                         }
                     } else {
                         showToast("Error loading drinks: " + response.error, true);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     showToast("Error: " + error, true);
                 }
             });
@@ -865,26 +710,22 @@
 
         function loadAvailableDrinks() {
             $('#drinkList').html('<div id="drinksLoadingMessage">Loading 44 drinks...</div>');
-
+            
             $.ajax({
                 url: '/get_drinks',
                 type: 'GET',
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         allDrinks = response.drinks;
                         displayAvailableDrinks(response.drinks);
-
+                        
+                        // Update title with actual count
                         $('.card-title:contains("Available Drinks")').text(`Available Drinks (${response.drinks.length} total)`);
-
-                        // Re-add touch support for new elements
-                        setTimeout(() => {
-                            addTouchSupport();
-                        }, 100);
                     } else {
                         $('#drinkList').html(`<div class="error-message">Error: ${response.error}</div>`);
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     $('#drinkList').html(`<div class="error-message">Error: ${error}</div>`);
                 }
             });
@@ -893,30 +734,35 @@
         function displayAvailableDrinks(drinks) {
             const $drinkList = $('#drinkList');
             $drinkList.empty();
-
+            
+            // Group drinks by category
             const categories = {};
-
+            
             drinks.forEach(drink => {
                 const mappedCategory = mapCategory(drink.categorie);
                 drink.mappedCategory = mappedCategory;
-
+                
                 if (!categories[drink.categorie]) {
                     categories[drink.categorie] = [];
                 }
                 categories[drink.categorie].push(drink);
             });
-
+            
+            // Display drinks by category
             Object.keys(categories).sort().forEach(category => {
+                // Add category header
                 $drinkList.append(`<div class="category-title">${category} (${categories[category].length})</div>`);
-
+                
+                // Sort drinks within category by name
                 categories[category].sort((a, b) => a.Naam.localeCompare(b.Naam));
-
+                
+                // Add drinks
                 categories[category].forEach(drink => {
                     const formattedPrice = parseFloat(drink.prijs).toFixed(2).replace('.', ',');
                     const mappedCategory = drink.mappedCategory || mapCategory(drink.categorie);
-
+                    
                     const drinkItem = `
-                        <div class="drink-item touch-feedback" data-name="${drink.Naam}" data-price="${drink.prijs}" data-id="${drink.ID}" data-category="${mappedCategory}" title="${drink.Naam} - €${formattedPrice}">
+                        <div class="drink-item" data-name="${drink.Naam}" data-price="${drink.prijs}" data-id="${drink.ID}" data-category="${mappedCategory}" title="${drink.Naam} - €${formattedPrice}">
                             <div class="drink-name">${drink.Naam}</div>
                             <div class="drink-price">€${formattedPrice}</div>
                         </div>
@@ -924,42 +770,27 @@
                     $drinkList.append(drinkItem);
                 });
             });
-
+            
             if (Object.keys(categories).length === 0) {
                 $drinkList.html('<div class="error-message">No drinks found.</div>');
             }
-
+            
             if (currentDisplayCategory !== 'all') {
                 filterDrinksByCategory(currentDisplayCategory);
             }
-
-            // Attach click events with enhanced touch handling
-            $('.drink-item').each(function () {
+            
+            // Attach click events
+            $('.drink-item').click(function() {
                 const $this = $(this);
                 const drinkName = $this.data('name');
                 const drinkPrice = $this.data('price');
                 const drinkId = $this.data('id');
 
-                // Use touch-optimized click handler
-                $this.on('click touchend', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    // Prevent double-tap zoom on mobile
-                    if (e.type === 'touchend') {
-                        const now = Date.now();
-                        if (this.lastTouchEnd && (now - this.lastTouchEnd) < 300) {
-                            return false;
-                        }
-                        this.lastTouchEnd = now;
-                    }
-
-                    $this.addClass('adding');
-                    addDrinkToUser(drinkName, drinkPrice, $this, drinkId);
-                });
+                $this.addClass('adding');
+                addDrinkToUser(drinkName, drinkPrice, $this, drinkId);
             });
         }
-
+        
         function filterDrinksByCategory(category) {
             if (category === 'all') {
                 $('.drink-item').show();
@@ -967,15 +798,15 @@
             } else {
                 $('.drink-item').hide();
                 $('.category-title').hide();
-
+                
                 $(`.drink-item[data-category="${category}"]`).show();
-
-                $('.category-title').each(function () {
+                
+                $('.category-title').each(function() {
                     const $title = $(this);
                     const $nextItems = $title.nextUntil('.category-title');
-
+                    
                     const hasVisibleDrinks = $nextItems.filter(':visible').length > 0;
-
+                    
                     if (hasVisibleDrinks) {
                         $title.show();
                     }
@@ -1005,12 +836,6 @@
                     if (response.success) {
                         showToast(response.message);
                         loadUserDrinks();
-
-                        // Haptic feedback simulation (visual pulse)
-                        $element.addClass('touch-feedback');
-                        setTimeout(() => {
-                            $element.removeClass('touch-feedback');
-                        }, 300);
                     } else {
                         showToast("Error: " + response.error, true);
                     }
@@ -1040,37 +865,6 @@
                 toast.remove();
             }, 3000);
         }
-
-        // Additional touch enhancements
-        document.addEventListener('DOMContentLoaded', function () {
-            // Prevent context menu on long press
-            document.addEventListener('contextmenu', function (e) {
-                e.preventDefault();
-            });
-
-            // Prevent pinch zoom
-            document.addEventListener('gesturestart', function (e) {
-                e.preventDefault();
-            });
-
-            // Prevent double-tap zoom
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', function (e) {
-                const now = (new Date()).getTime();
-                if (now - lastTouchEnd <= 300) {
-                    e.preventDefault();
-                }
-                lastTouchEnd = now;
-            }, false);
-
-            // Add momentum scrolling to all scrollable elements
-            document.querySelectorAll('.scrollable').forEach(element => {
-                element.style.webkitOverflowScrolling = 'touch';
-                element.style.overflowScrolling = 'touch';
-            });
-
-            console.log('Touch optimizations loaded for DFR0678');
-        });
     </script>
 </body>
 
